@@ -20,6 +20,64 @@ import { Label } from "@/components/ui/label";
 import { DirectoryDockClient } from "directorydockclient";
 import Image from "next/image";
 import { Switch } from "@/components/ui/switch";
+import * as React from "react";
+import * as AccordionPrimitive from "@radix-ui/react-accordion";
+import clsx from "clsx";
+
+const cn = (...classes: (string | undefined)[]) => {
+  return clsx(classes);
+};
+
+const Accordion = AccordionPrimitive.Root;
+
+const AccordionItem = React.forwardRef<
+  React.ElementRef<typeof AccordionPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
+>(({ className, ...props }, ref) => (
+  <AccordionPrimitive.Item
+    ref={ref}
+    className={cn("border-b", className)}
+    {...props}
+  />
+));
+AccordionItem.displayName = "AccordionItem";
+
+const AccordionTrigger = React.forwardRef<
+  React.ElementRef<typeof AccordionPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
+>(({ className, children, ...props }, ref) => (
+  <AccordionPrimitive.Header className="flex">
+    <AccordionPrimitive.Trigger
+      ref={ref}
+      className={cn(
+        "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+    </AccordionPrimitive.Trigger>
+  </AccordionPrimitive.Header>
+));
+AccordionTrigger.displayName = "AccordionTrigger";
+
+const AccordionContent = React.forwardRef<
+  React.ElementRef<typeof AccordionPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <AccordionPrimitive.Content
+    ref={ref}
+    className={cn(
+      "overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down",
+      className
+    )}
+    {...props}
+  >
+    <div className="pb-4 pt-0">{children}</div>
+  </AccordionPrimitive.Content>
+));
+AccordionContent.displayName = "AccordionContent";
 
 export default function Component() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -28,6 +86,11 @@ export default function Component() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<any[]>([]);
+  const [openItems, setOpenItems] = React.useState<string[]>([]);
+
+  const handleAccordionChange = (value: string[]) => {
+    setOpenItems(value);
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -132,44 +195,51 @@ export default function Component() {
               <X size={24} />
             </button>
             <h2 className="text-2xl font-semibold mb-6">Filters</h2>
-            <div className="space-y-6">
-              {filters.map((filter) => (
-                <div key={filter.fieldName}>
-                  <h3 className="font-semibold mb-2">{filter.fieldName}</h3>
-                  <div className="space-y-2">
-                    {filter.fieldType === "dropdown" &&
-                      filter.options.map((option: string) => (
-                        <div key={option} className="flex items-center">
-                          <Checkbox id={`${filter.fieldName}-${option}`} />
+            <Accordion
+              type="multiple"
+              value={openItems}
+              onValueChange={handleAccordionChange}
+              className="w-full"
+            >
+              {filters.map((filter, index) => (
+                <AccordionItem key={filter.fieldName} value={`item-${index}`}>
+                  <AccordionTrigger>{filter.fieldName}</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2">
+                      {filter.fieldType === "dropdown" &&
+                        filter.options.map((option: string) => (
+                          <div key={option} className="flex items-center">
+                            <Checkbox id={`${filter.fieldName}-${option}`} />
+                            <Label
+                              htmlFor={`${filter.fieldName}-${option}`}
+                              className="ml-2"
+                            >
+                              {option}
+                            </Label>
+                          </div>
+                        ))}
+                      {filter.fieldType === "text" && (
+                        <Input
+                          id={`${filter.fieldName}-input`}
+                          placeholder={`Enter ${filter.fieldName.toLowerCase()}`}
+                        />
+                      )}
+                      {filter.fieldType === "boolean" && (
+                        <div className="flex items-center">
+                          <Switch id={`${filter.fieldName}-switch`} />
                           <Label
-                            htmlFor={`${filter.fieldName}-${option}`}
+                            htmlFor={`${filter.fieldName}-switch`}
                             className="ml-2"
                           >
-                            {option}
+                            {filter.fieldName}
                           </Label>
                         </div>
-                      ))}
-                    {filter.fieldType === "text" && (
-                      <Input
-                        id={`${filter.fieldName}-input`}
-                        placeholder={`Enter ${filter.fieldName.toLowerCase()}`}
-                      />
-                    )}
-                    {filter.fieldType === "boolean" && (
-                      <div className="flex items-center">
-                        <Switch id={`${filter.fieldName}-switch`} />
-                        <Label
-                          htmlFor={`${filter.fieldName}-switch`}
-                          className="ml-2"
-                        >
-                          {filter.fieldName}
-                        </Label>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
               ))}
-            </div>
+            </Accordion>
           </div>
           <div className="p-4 border-t border-gray-200 bg-background">
             <Button className="w-full" onClick={() => setIsFilterOpen(false)}>
