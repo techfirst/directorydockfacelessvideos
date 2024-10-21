@@ -1,4 +1,17 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Video Directory
+
+This is a [Next.js](https://nextjs.org) project that serves as a comprehensive directory for AI-powered video creation tools and services.
+
+## Project Purpose
+
+The AI Video Directory is designed to help content creators discover and compare various AI-powered tools and services for creating faceless video content. Key features include:
+
+- A searchable database of AI video creation tools
+- Detailed listings of services with descriptions and features
+- User-friendly interface for easy navigation and comparison
+- Ability for service providers to submit their tools for inclusion
+
+This platform aims to streamline the process of finding the right AI video creation tools, saving time and effort for content creators in their workflow.
 
 ## Getting Started
 
