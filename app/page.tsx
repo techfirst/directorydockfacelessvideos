@@ -10,17 +10,11 @@ import {
   Mail,
   Phone,
   MapPin,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { DirectoryDockClient } from "directorydockclient";
@@ -115,62 +109,83 @@ export default function Component() {
           </div>
         </div>
       </section>
-      <section className="container mx-auto px-4 py-12">
+      <section className="container mx-auto px-4 py-12 relative">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-bold">Top AI Video Services</h2>
-          <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Filter className="mr-2 h-4 w-4" />
-                Filter Results
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Filter Options</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-6">
-                {filters.map((filter) => (
-                  <div key={filter.fieldName}>
-                    <h3 className="font-semibold mb-2">{filter.fieldName}</h3>
-                    <div className="space-y-2">
-                      {filter.fieldType === "dropdown" &&
-                        filter.options.map((option: string) => (
-                          <div key={option} className="flex items-center">
-                            <Checkbox id={`${filter.fieldName}-${option}`} />
-                            <Label
-                              htmlFor={`${filter.fieldName}-${option}`}
-                              className="ml-2"
-                            >
-                              {option}
-                            </Label>
-                          </div>
-                        ))}
-                      {filter.fieldType === "text" && (
-                        <Input
-                          id={`${filter.fieldName}-input`}
-                          placeholder={`Enter ${filter.fieldName.toLowerCase()}`}
-                        />
-                      )}
-                      {filter.fieldType === "boolean" && (
-                        <div className="flex items-center">
-                          <Switch id={`${filter.fieldName}-switch`} />
+          <Button variant="outline" onClick={() => setIsFilterOpen(true)}>
+            <Filter className="mr-2 h-4 w-4" />
+            Filter Results
+          </Button>
+        </div>
+
+        {/* Filter Sidebar */}
+        <aside
+          className={`fixed top-0 right-0 h-full w-80 bg-background shadow-lg transform transition-transform duration-300 ease-in-out z-50 flex flex-col ${
+            isFilterOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <div className="p-6 flex-grow overflow-y-auto">
+            <button
+              onClick={() => setIsFilterOpen(false)}
+              className="absolute top-4 right-4 text-foreground hover:text-muted-foreground"
+            >
+              <X size={24} />
+            </button>
+            <h2 className="text-2xl font-semibold mb-6">Filters</h2>
+            <div className="space-y-6">
+              {filters.map((filter) => (
+                <div key={filter.fieldName}>
+                  <h3 className="font-semibold mb-2">{filter.fieldName}</h3>
+                  <div className="space-y-2">
+                    {filter.fieldType === "dropdown" &&
+                      filter.options.map((option: string) => (
+                        <div key={option} className="flex items-center">
+                          <Checkbox id={`${filter.fieldName}-${option}`} />
                           <Label
-                            htmlFor={`${filter.fieldName}-switch`}
+                            htmlFor={`${filter.fieldName}-${option}`}
                             className="ml-2"
                           >
-                            {filter.fieldName}
+                            {option}
                           </Label>
                         </div>
-                      )}
-                    </div>
+                      ))}
+                    {filter.fieldType === "text" && (
+                      <Input
+                        id={`${filter.fieldName}-input`}
+                        placeholder={`Enter ${filter.fieldName.toLowerCase()}`}
+                      />
+                    )}
+                    {filter.fieldType === "boolean" && (
+                      <div className="flex items-center">
+                        <Switch id={`${filter.fieldName}-switch`} />
+                        <Label
+                          htmlFor={`${filter.fieldName}-switch`}
+                          className="ml-2"
+                        >
+                          {filter.fieldName}
+                        </Label>
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
-              <Button className="mt-4">Apply Filters</Button>
-            </DialogContent>
-          </Dialog>
-        </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="p-4 border-t border-gray-200 bg-background">
+            <Button className="w-full" onClick={() => setIsFilterOpen(false)}>
+              Apply Filters
+            </Button>
+          </div>
+        </aside>
+
+        {/* Overlay */}
+        {isFilterOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setIsFilterOpen(false)}
+          ></div>
+        )}
+
         {isLoading ? (
           <p>Loading services...</p>
         ) : error ? (
