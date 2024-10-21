@@ -10,7 +10,6 @@ import {
   Mail,
   Phone,
   MapPin,
-  VideoIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { DirectoryDockClient } from "directorydockclient";
 import Image from "next/image";
+import { Switch } from "@/components/ui/switch";
 
 export default function Component() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -33,9 +33,10 @@ export default function Component() {
   const [services, setServices] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<any[]>([]);
 
   useEffect(() => {
-    async function fetchServices() {
+    async function fetchData() {
       const key = process.env.NEXT_PUBLIC_DIRECTORY_DOCK_API_KEY;
       if (!key) {
         setError("API key not found. Please check your environment variables.");
@@ -46,18 +47,21 @@ export default function Component() {
       const client = new DirectoryDockClient(key);
 
       try {
-        const response = await client.getEntries(1, 10);
-        console.log("API Response:", response);
+        const [servicesResponse, filtersResponse] = await Promise.all([
+          client.getEntries(1, 10),
+          client.getFilters(),
+        ]);
 
-        setServices(response.entries);
+        setServices(servicesResponse.entries);
+        setFilters(filtersResponse);
       } catch (err) {
-        setError("Failed to load services. Please try again later.");
+        setError("Failed to load data. Please try again later.");
         console.error(err);
       } finally {
         setIsLoading(false);
       }
     }
-    fetchServices();
+    fetchData();
   }, []);
 
   const faqItems = [
@@ -125,45 +129,45 @@ export default function Component() {
               <DialogHeader>
                 <DialogTitle>Filter Options</DialogTitle>
               </DialogHeader>
-              <div className="grid gap-4">
-                <div>
-                  <h3 className="font-semibold mb-2">Categories</h3>
-                  <div className="space-y-2">
-                    {[
-                      "Video Creation",
-                      "Audio",
-                      "Animation",
-                      "Editing",
-                      "SEO",
-                    ].map((category) => (
-                      <div key={category} className="flex items-center">
-                        <Checkbox id={`category-${category}`} />
-                        <Label
-                          htmlFor={`category-${category}`}
-                          className="ml-2"
-                        >
-                          {category}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">Price Range</h3>
-                  <div className="space-y-2">
-                    {["Free", "$1 - $50", "$51 - $100", "$101+"].map(
-                      (price) => (
-                        <div key={price} className="flex items-center">
-                          <Checkbox id={`price-${price}`} />
-                          <Label htmlFor={`price-${price}`} className="ml-2">
-                            {price}
+              <div className="grid gap-6">
+                {filters.map((filter) => (
+                  <div key={filter.fieldName}>
+                    <h3 className="font-semibold mb-2">{filter.fieldName}</h3>
+                    <div className="space-y-2">
+                      {filter.fieldType === "dropdown" &&
+                        filter.options.map((option: string) => (
+                          <div key={option} className="flex items-center">
+                            <Checkbox id={`${filter.fieldName}-${option}`} />
+                            <Label
+                              htmlFor={`${filter.fieldName}-${option}`}
+                              className="ml-2"
+                            >
+                              {option}
+                            </Label>
+                          </div>
+                        ))}
+                      {filter.fieldType === "text" && (
+                        <Input
+                          id={`${filter.fieldName}-input`}
+                          placeholder={`Enter ${filter.fieldName.toLowerCase()}`}
+                        />
+                      )}
+                      {filter.fieldType === "boolean" && (
+                        <div className="flex items-center">
+                          <Switch id={`${filter.fieldName}-switch`} />
+                          <Label
+                            htmlFor={`${filter.fieldName}-switch`}
+                            className="ml-2"
+                          >
+                            {filter.fieldName}
                           </Label>
                         </div>
-                      )
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
+              <Button className="mt-4">Apply Filters</Button>
             </DialogContent>
           </Dialog>
         </div>
