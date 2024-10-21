@@ -90,211 +90,198 @@ export default function Component() {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <VideoIcon className="h-8 w-8 text-orange-300" />
-            <h1 className="text-2xl font-bold">AI Video Directory</h1>
+    <>
+      <section className="bg-[url('https://images.unsplash.com/photo-1519744699897-3544da770a84?q=80&w=2671&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')] bg-cover bg-center text-white py-20">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-4xl font-bold mb-4">
+            Discover Faceless AI Video Services
+          </h2>
+          <p className="text-xl mb-8">
+            Find the perfect tools for creating engaging faceless content
+          </p>
+          <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden flex">
+            <Input
+              className="flex-grow border-none"
+              placeholder="Search for AI video services..."
+            />
+            <Button size="lg" className="rounded-none">
+              <Search className="mr-2 h-5 w-5" />
+              SEARCH
+            </Button>
           </div>
-          <Button variant="secondary">Submit Service</Button>
         </div>
-      </header>
-      <main className="flex-grow">
-        <section className="bg-[url('https://images.unsplash.com/photo-1682506456442-a051e8dae813?q=80&w=2671&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')] bg-cover bg-center text-white py-20">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-4xl font-bold mb-4">
-              Discover Faceless AI Video Services
-            </h2>
-            <p className="text-xl mb-8">
-              Find the perfect tools for creating engaging faceless content
-            </p>
-            <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden flex">
-              <Input
-                className="flex-grow border-none"
-                placeholder="Search for AI video services..."
-              />
-              <Button size="lg" className="rounded-none">
-                <Search className="mr-2 h-5 w-5" />
-                SEARCH
+      </section>
+      <section className="container mx-auto px-4 py-12">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-2xl font-bold">Top AI Video Services</h2>
+          <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Filter className="mr-2 h-4 w-4" />
+                Filter Results
               </Button>
-            </div>
-          </div>
-        </section>
-        <section className="container mx-auto px-4 py-12">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold">Top AI Video Services</h2>
-            <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Filter className="mr-2 h-4 w-4" />
-                  Filter Results
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Filter Options</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4">
-                  <div>
-                    <h3 className="font-semibold mb-2">Categories</h3>
-                    <div className="space-y-2">
-                      {[
-                        "Video Creation",
-                        "Audio",
-                        "Animation",
-                        "Editing",
-                        "SEO",
-                      ].map((category) => (
-                        <div key={category} className="flex items-center">
-                          <Checkbox id={`category-${category}`} />
-                          <Label
-                            htmlFor={`category-${category}`}
-                            className="ml-2"
-                          >
-                            {category}
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Filter Options</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4">
+                <div>
+                  <h3 className="font-semibold mb-2">Categories</h3>
+                  <div className="space-y-2">
+                    {[
+                      "Video Creation",
+                      "Audio",
+                      "Animation",
+                      "Editing",
+                      "SEO",
+                    ].map((category) => (
+                      <div key={category} className="flex items-center">
+                        <Checkbox id={`category-${category}`} />
+                        <Label
+                          htmlFor={`category-${category}`}
+                          className="ml-2"
+                        >
+                          {category}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-2">Price Range</h3>
+                  <div className="space-y-2">
+                    {["Free", "$1 - $50", "$51 - $100", "$101+"].map(
+                      (price) => (
+                        <div key={price} className="flex items-center">
+                          <Checkbox id={`price-${price}`} />
+                          <Label htmlFor={`price-${price}`} className="ml-2">
+                            {price}
                           </Label>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-2">Price Range</h3>
-                    <div className="space-y-2">
-                      {["Free", "$1 - $50", "$51 - $100", "$101+"].map(
-                        (price) => (
-                          <div key={price} className="flex items-center">
-                            <Checkbox id={`price-${price}`} />
-                            <Label htmlFor={`price-${price}`} className="ml-2">
-                              {price}
-                            </Label>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-          {isLoading ? (
-            <p>Loading services...</p>
-          ) : error ? (
-            <p className="text-red-500">{error}</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {services.map((service) => (
-                <a
-                  key={service.Id}
-                  href={`/${service.Slug.value}`}
-                  className="block bg-white p-6 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-xl"
-                >
-                  {service.Image && service.Image.value && (
-                    <Image
-                      src={service.Image.value}
-                      alt={service.Name.value}
-                      width={300}
-                      height={200}
-                      className="w-full h-40 object-cover mb-4 rounded"
-                    />
-                  )}
-                  <h3 className="font-semibold text-lg mb-2">
-                    {service.Name.value}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {service.Description.value}
-                  </p>
-                </a>
-              ))}
-            </div>
-          )}
-        </section>
-        <section className="bg-gray-900 text-white py-16">
-          <div className="container mx-auto px-4">
-            <h2 className="text-4xl font-bold text-center mb-2">F.A.Q.</h2>
-            <p className="text-xl text-center mb-12">
-              Got questions? We&apos;ve got answers.
-            </p>
-            <div className="max-w-3xl mx-auto space-y-4">
-              {faqItems.map((item, index) => (
-                <div
-                  key={index}
-                  className={`bg-white rounded-2xl overflow-hidden transition-all duration-300 ease-in-out ${
-                    expandedFaq === index ? "ring-2 ring-red-500" : ""
-                  }`}
-                >
-                  <button
-                    className="w-full px-6 py-4 text-left text-gray-900 font-semibold flex justify-between items-center hover:bg-gray-50 transition-colors duration-300"
-                    onClick={() =>
-                      setExpandedFaq(expandedFaq === index ? null : index)
-                    }
-                  >
-                    {item.question}
-                    {expandedFaq === index ? (
-                      <ChevronUp className="h-5 w-5 text-red-500" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-gray-500" />
+                      )
                     )}
-                  </button>
-                  {expandedFaq === index && (
-                    <div className="px-6 py-4 text-gray-700">{item.answer}</div>
-                  )}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-        <section className="bg-gray-100 py-16">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-8">
-              Submit Your AI Video Service
-            </h2>
-            <form className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
-              <div className="grid gap-6">
-                <div>
-                  <Label htmlFor="service-name">Service Name</Label>
-                  <Input
-                    id="service-name"
-                    placeholder="Enter your service name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="service-description">
-                    Service Description
-                  </Label>
-                  <Textarea
-                    id="service-description"
-                    placeholder="Describe your AI video service"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="service-url">Service URL</Label>
-                  <Input
-                    id="service-url"
-                    type="url"
-                    placeholder="https://your-service-url.com"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="contact-email">Contact Email</Label>
-                  <Input
-                    id="contact-email"
-                    type="email"
-                    placeholder="your@email.com"
-                  />
-                </div>
-                <div>
-                  <Label className="flex items-center space-x-2">
-                    <Checkbox id="terms" />
-                    <span>I agree to the terms and conditions</span>
-                  </Label>
-                </div>
-                <Button type="submit">Submit Service</Button>
               </div>
-            </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+        {isLoading ? (
+          <p>Loading services...</p>
+        ) : error ? (
+          <p className="text-red-500">{error}</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {services.map((service) => (
+              <a
+                key={service.Id}
+                href={`/${service.Slug.value}`}
+                className="block bg-white p-6 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-xl"
+              >
+                {service.Image && service.Image.value && (
+                  <Image
+                    src={service.Image.value}
+                    alt={service.Name.value}
+                    width={300}
+                    height={200}
+                    className="w-full h-40 object-cover mb-4 rounded"
+                  />
+                )}
+                <h3 className="font-semibold text-lg mb-2">
+                  {service.Name.value}
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {service.Description.value}
+                </p>
+              </a>
+            ))}
           </div>
-        </section>
-      </main>
+        )}
+      </section>
+      <section className="bg-gray-900 text-white py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-bold text-center mb-2">F.A.Q.</h2>
+          <p className="text-xl text-center mb-12">
+            Got questions? We&apos;ve got answers.
+          </p>
+          <div className="max-w-3xl mx-auto space-y-4">
+            {faqItems.map((item, index) => (
+              <div
+                key={index}
+                className={`bg-white rounded-2xl overflow-hidden transition-all duration-300 ease-in-out ${
+                  expandedFaq === index ? "ring-2 ring-red-500" : ""
+                }`}
+              >
+                <button
+                  className="w-full px-6 py-4 text-left text-gray-900 font-semibold flex justify-between items-center hover:bg-gray-50 transition-colors duration-300"
+                  onClick={() =>
+                    setExpandedFaq(expandedFaq === index ? null : index)
+                  }
+                >
+                  {item.question}
+                  {expandedFaq === index ? (
+                    <ChevronUp className="h-5 w-5 text-red-500" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-gray-500" />
+                  )}
+                </button>
+                {expandedFaq === index && (
+                  <div className="px-6 py-4 text-gray-700">{item.answer}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="bg-gray-100 py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-8">
+            Submit Your AI Video Service
+          </h2>
+          <form className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+            <div className="grid gap-6">
+              <div>
+                <Label htmlFor="service-name">Service Name</Label>
+                <Input
+                  id="service-name"
+                  placeholder="Enter your service name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="service-description">Service Description</Label>
+                <Textarea
+                  id="service-description"
+                  placeholder="Describe your AI video service"
+                />
+              </div>
+              <div>
+                <Label htmlFor="service-url">Service URL</Label>
+                <Input
+                  id="service-url"
+                  type="url"
+                  placeholder="https://your-service-url.com"
+                />
+              </div>
+              <div>
+                <Label htmlFor="contact-email">Contact Email</Label>
+                <Input
+                  id="contact-email"
+                  type="email"
+                  placeholder="your@email.com"
+                />
+              </div>
+              <div>
+                <Label className="flex items-center space-x-2">
+                  <Checkbox id="terms" />
+                  <span>I agree to the terms and conditions</span>
+                </Label>
+              </div>
+              <Button type="submit">Submit Service</Button>
+            </div>
+          </form>
+        </div>
+      </section>
       <footer className="bg-gray-800 text-white py-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -358,6 +345,6 @@ export default function Component() {
           </div>
         </div>
       </footer>
-    </div>
+    </>
   );
 }
