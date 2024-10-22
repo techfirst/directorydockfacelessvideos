@@ -290,8 +290,12 @@ export default function Component() {
       Object.entries(newFilters).forEach(([filterKey, values]) => {
         if (Array.isArray(values) && values.length > 0) {
           params.set(filterKey, values.join(","));
-        } else if (!Array.isArray(values) && values) {
-          params.set(filterKey, values.toString());
+        } else if (
+          !Array.isArray(values) &&
+          values !== undefined &&
+          values !== null
+        ) {
+          params.set(filterKey, String(values));
         }
       });
 
