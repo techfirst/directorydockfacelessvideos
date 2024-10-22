@@ -92,7 +92,7 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
               href={service.Url.value}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block bg-orange-300 text-gray-900 font-bold py-3 px-6 rounded-lg hover:bg-orange-400 transition duration-300 ease-in-out"
+              className="inline-block bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-300 ease-in-out"
             >
               Visit {service.Name.value}
             </a>

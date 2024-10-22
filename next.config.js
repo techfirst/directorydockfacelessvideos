@@ -10,6 +10,9 @@ const nextConfig = {
       },
     ],
   },
+  env: {
+    NEXT_PUBLIC_BASE_URL: "https://facelessvideolist.com", // Replace with your actual domain
+  },
 };
 
 module.exports = nextConfig;
