@@ -24,6 +24,7 @@ import * as React from "react";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import clsx from "clsx";
 import { truncateText } from "@/lib/utils"; // You'll need to create this utility function
+import { useRouter, useSearchParams } from "next/navigation";
 
 const cn = (...classes: (string | undefined)[]) => {
   return clsx(classes);
@@ -81,6 +82,8 @@ const AccordionContent = React.forwardRef<
 AccordionContent.displayName = "AccordionContent";
 
 export default function Component() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [services, setServices] = useState<any[]>([]);
@@ -89,10 +92,23 @@ export default function Component() {
   const [filters, setFilters] = useState<any[]>([]);
   const [openItems, setOpenItems] = React.useState<string[]>([]);
   const [showAllServices, setShowAllServices] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>(
+    {}
+  );
 
   const handleAccordionChange = (value: string[]) => {
     setOpenItems(value);
   };
+
+  useEffect(() => {
+    // Parse URL params and set initial filters
+    const urlFilters: Record<string, string[]> = {};
+    searchParams.forEach((value, key) => {
+      urlFilters[key] = value.split(",");
+    });
+    setActiveFilters(urlFilters);
+    setIsFilterOpen(false);
+  }, [searchParams]);
 
   useEffect(() => {
     async function fetchData() {
@@ -111,8 +127,14 @@ export default function Component() {
           client.getFilters(),
         ]);
 
-        setServices(servicesResponse.entries);
         setFilters(filtersResponse);
+
+        // Apply filters to the fetched services
+        const filteredServices = applyFiltersToServices(
+          servicesResponse.entries,
+          activeFilters
+        );
+        setServices(filteredServices);
       } catch (err) {
         setError("Failed to load data. Please try again later.");
         console.error(err);
@@ -121,7 +143,52 @@ export default function Component() {
       }
     }
     fetchData();
-  }, []);
+  }, [activeFilters]); // Add activeFilters as a dependency
+
+  const applyFiltersToServices = (
+    services: any[],
+    filters: Record<string, string[]>
+  ) => {
+    return services.filter((service) => {
+      return Object.entries(filters).every(([key, values]) => {
+        if (values.length === 0) return true;
+        const serviceValue = service[key]?.value;
+        return values.includes(serviceValue);
+      });
+    });
+  };
+
+  const handleFilterChange = (
+    filterName: string,
+    value: string,
+    checked: boolean
+  ) => {
+    setActiveFilters((prevFilters) => {
+      const newFilters = { ...prevFilters };
+      if (checked) {
+        newFilters[filterName] = [...(newFilters[filterName] || []), value];
+      } else {
+        newFilters[filterName] = newFilters[filterName].filter(
+          (v) => v !== value
+        );
+      }
+      if (newFilters[filterName].length === 0) {
+        delete newFilters[filterName];
+      }
+      return newFilters;
+    });
+
+    // Update URL immediately
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(activeFilters).forEach(([key, values]) => {
+      if (values.length > 0) {
+        params.set(key, values.join(","));
+      } else {
+        params.delete(key);
+      }
+    });
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
 
   const faqItems = [
     {
@@ -153,6 +220,34 @@ export default function Component() {
   ];
 
   const visibleServices = showAllServices ? services : services.slice(0, 32);
+
+  const removeFilter = (key: string, value: string) => {
+    setActiveFilters((prevFilters) => {
+      const newFilters = { ...prevFilters };
+      newFilters[key] = newFilters[key].filter((v) => v !== value);
+      if (newFilters[key].length === 0) {
+        delete newFilters[key];
+      }
+      return newFilters;
+    });
+
+    // Update URL
+    const params = new URLSearchParams(searchParams.toString());
+    const remainingValues = activeFilters[key]?.filter((v) => v !== value);
+    if (remainingValues && remainingValues.length > 0) {
+      params.set(key, remainingValues.join(","));
+    } else {
+      params.delete(key);
+    }
+
+    // Remove the parameter entirely if it's empty
+    if (params.get(key) === "") {
+      params.delete(key);
+    }
+
+    const newUrl = params.toString() ? `?${params.toString()}` : "";
+    router.push(newUrl, { scroll: false });
+  };
 
   return (
     <>
@@ -186,6 +281,24 @@ export default function Component() {
           </Button>
         </div>
 
+        {/* Display active filters */}
+        {Object.keys(activeFilters).length > 0 && (
+          <div className="mb-4 flex flex-wrap gap-2">
+            {Object.entries(activeFilters).map(([key, values]) =>
+              values.map((value) => (
+                <Button
+                  key={`${key}-${value}`}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeFilter(key, value)}
+                >
+                  {key}: {value} <X className="ml-2 h-4 w-4" />
+                </Button>
+              ))
+            )}
+          </div>
+        )}
+
         {/* Filter Sidebar */}
         <aside
           className={`fixed top-0 right-0 h-full w-80 bg-background shadow-lg transform transition-transform duration-300 ease-in-out z-50 flex flex-col ${
@@ -214,7 +327,21 @@ export default function Component() {
                       {filter.fieldType === "dropdown" &&
                         filter.options.map((option: string) => (
                           <div key={option} className="flex items-center">
-                            <Checkbox id={`${filter.fieldName}-${option}`} />
+                            <Checkbox
+                              id={`${filter.fieldName}-${option}`}
+                              checked={
+                                activeFilters[filter.fieldName]?.includes(
+                                  option
+                                ) || false
+                              }
+                              onCheckedChange={(checked) => {
+                                handleFilterChange(
+                                  filter.fieldName,
+                                  option,
+                                  checked === true
+                                );
+                              }}
+                            />
                             <Label
                               htmlFor={`${filter.fieldName}-${option}`}
                               className="ml-2"
@@ -248,7 +375,7 @@ export default function Component() {
           </div>
           <div className="p-4 border-t border-gray-200 bg-background">
             <Button className="w-full" onClick={() => setIsFilterOpen(false)}>
-              Apply Filters
+              Show Results
             </Button>
           </div>
         </aside>
