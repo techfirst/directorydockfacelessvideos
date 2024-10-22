@@ -156,7 +156,7 @@ export default function Component() {
 
   return (
     <>
-      <section className="bg-[url('https://images.unsplash.com/photo-1519744699897-3544da770a84?q=80&w=2671&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')] bg-cover bg-center text-white py-20">
+      <section className="bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2672&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')] bg-cover bg-center text-white py-20">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-4">
             Discover Faceless AI Video Services
