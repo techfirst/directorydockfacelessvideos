@@ -175,17 +175,16 @@ export default function Component() {
 
   const handleFilterChange = (
     filterName: string,
-    value: string | boolean,
+    value: string | boolean | null,
     checked?: boolean
   ) => {
     setActiveFilters((prevFilters) => {
       const newFilters = { ...prevFilters };
-      if (typeof value === "boolean") {
-        if (value) {
-          newFilters[filterName] = ["true"];
-        } else {
-          delete newFilters[filterName];
-        }
+      if (value === null) {
+        // "Any" option selected, remove the filter
+        delete newFilters[filterName];
+      } else if (typeof value === "boolean") {
+        newFilters[filterName] = [value.toString()];
       } else {
         if (checked) {
           newFilters[filterName] = [...(newFilters[filterName] || []), value];
@@ -246,14 +245,7 @@ export default function Component() {
   const removeFilter = (key: string, value: string) => {
     setActiveFilters((prevFilters) => {
       const newFilters = { ...prevFilters };
-      if (value === "true" && newFilters[key]?.includes("true")) {
-        delete newFilters[key];
-      } else {
-        newFilters[key] = newFilters[key].filter((v) => v !== value);
-        if (newFilters[key].length === 0) {
-          delete newFilters[key];
-        }
-      }
+      delete newFilters[key];
 
       // Update URL based on the new filters
       const params = new URLSearchParams();
@@ -312,7 +304,8 @@ export default function Component() {
                   size="sm"
                   onClick={() => removeFilter(key, value)}
                 >
-                  {key}: {value === "true" ? "Yes" : value}{" "}
+                  {key}:{" "}
+                  {value === "true" ? "Yes" : value === "false" ? "No" : value}{" "}
                   <X className="ml-2 h-4 w-4" />
                 </Button>
               ))
@@ -372,24 +365,30 @@ export default function Component() {
                           </div>
                         ))}
                       {filter.fieldType === "boolean" && (
-                        <div className="flex items-center">
-                          <Switch
-                            id={`${filter.fieldName}-switch`}
-                            checked={
-                              activeFilters[filter.fieldName]?.includes(
-                                "true"
-                              ) || false
-                            }
-                            onCheckedChange={(checked) => {
-                              handleFilterChange(filter.fieldName, checked);
-                            }}
-                          />
-                          <Label
-                            htmlFor={`${filter.fieldName}-switch`}
-                            className="ml-2"
-                          >
+                        <div className="flex items-center space-x-2">
+                          <Label htmlFor={`${filter.fieldName}-switch`}>
                             {filter.fieldName}
                           </Label>
+                          <select
+                            id={`${filter.fieldName}-switch`}
+                            value={activeFilters[filter.fieldName]?.[0] || ""}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === "") {
+                                handleFilterChange(filter.fieldName, null);
+                              } else {
+                                handleFilterChange(
+                                  filter.fieldName,
+                                  value === "true"
+                                );
+                              }
+                            }}
+                            className="border rounded px-2 py-1"
+                          >
+                            <option value="">Any</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                          </select>
                         </div>
                       )}
                       {filter.fieldType === "text" && (
