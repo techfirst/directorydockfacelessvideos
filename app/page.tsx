@@ -87,6 +87,7 @@ export default function Component() {
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<any[]>([]);
   const [openItems, setOpenItems] = React.useState<string[]>([]);
+  const [showAllServices, setShowAllServices] = useState(false);
 
   const handleAccordionChange = (value: string[]) => {
     setOpenItems(value);
@@ -149,6 +150,8 @@ export default function Component() {
         "AI Video Directory acts as a curator and aggregator of AI video services. We strive to provide accurate and up-to-date information about the listed services. However, we are not responsible for the performance, quality, or customer service of the individual tools and services listed. We recommend users to verify details directly with the service providers before making any decisions or purchases. If you encounter any issues with listed services, please let us know so we can investigate and update our listings accordingly.",
     },
   ];
+
+  const visibleServices = showAllServices ? services : services.slice(0, 32);
 
   return (
     <>
@@ -261,31 +264,43 @@ export default function Component() {
         ) : error ? (
           <p className="text-red-500">{error}</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {services.map((service) => (
-              <a
-                key={service.Id}
-                href={`/${service.Slug.value}`}
-                className="block bg-white p-6 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-xl"
-              >
-                {service.Image && service.Image.value && (
-                  <Image
-                    src={service.Image.value}
-                    alt={service.Name.value}
-                    width={300}
-                    height={200}
-                    className="w-full h-40 object-cover mb-4 rounded"
-                  />
-                )}
-                <h3 className="font-semibold text-lg mb-2">
-                  {service.Name.value}
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {service.Description.value}
-                </p>
-              </a>
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {visibleServices.map((service) => (
+                <a
+                  key={service.Id}
+                  href={`/${service.Slug.value}`}
+                  className="block bg-white p-6 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-xl"
+                >
+                  {service.Image && service.Image.value && (
+                    <Image
+                      src={service.Image.value}
+                      alt={service.Name.value}
+                      width={300}
+                      height={200}
+                      className="w-full h-40 object-cover mb-4 rounded"
+                    />
+                  )}
+                  <h3 className="font-semibold text-lg mb-2">
+                    {service.Name.value}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {service.Description.value}
+                  </p>
+                </a>
+              ))}
+            </div>
+            {!showAllServices && services.length > visibleServices.length && (
+              <div className="mt-8 text-center">
+                <Button
+                  onClick={() => setShowAllServices(true)}
+                  className="bg-orange-300 text-gray-900 hover:bg-orange-400 transition duration-300 ease-in-out"
+                >
+                  Show all
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </section>
       <section className="bg-gray-900 text-white py-16">
