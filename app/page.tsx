@@ -23,6 +23,7 @@ import { Switch } from "@/components/ui/switch";
 import * as React from "react";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import clsx from "clsx";
+import { truncateText } from "@/lib/utils"; // You'll need to create this utility function
 
 const cn = (...classes: (string | undefined)[]) => {
   return clsx(classes);
@@ -270,7 +271,7 @@ export default function Component() {
                 <a
                   key={service.Id}
                   href={`/${service.Slug.value}`}
-                  className="block bg-white p-6 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-xl"
+                  className="block bg-white p-6 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-xl h-full flex flex-col"
                 >
                   {service.Image && service.Image.value && (
                     <Image
@@ -284,8 +285,8 @@ export default function Component() {
                   <h3 className="font-semibold text-lg mb-2">
                     {service.Name.value}
                   </h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {service.Description.value}
+                  <p className="text-sm text-muted-foreground mb-4 flex-grow">
+                    {truncateText(service.Description.value, 100)}
                   </p>
                 </a>
               ))}
