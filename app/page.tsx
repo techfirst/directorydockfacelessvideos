@@ -365,7 +365,7 @@ export default function Component() {
           <h2 className="text-2xl font-bold">Faceless video services</h2>
           <Button variant="outline" onClick={() => setIsFilterOpen(true)}>
             <Filter className="mr-2 h-4 w-4" />
-            Filter Results
+            Filter results
           </Button>
         </div>
 
@@ -569,7 +569,7 @@ export default function Component() {
           </div>
           <div className="p-4 border-t border-gray-200 bg-background">
             <Button className="w-full" onClick={() => setIsFilterOpen(false)}>
-              Show Results
+              Show results
             </Button>
           </div>
         </aside>
@@ -710,7 +710,7 @@ export default function Component() {
                   <span>I agree to the terms and conditions</span>
                 </Label>
               </div>
-              <Button type="submit">Submit Service</Button>
+              <Button type="submit">Submit</Button>
             </div>
           </form>
         </div>

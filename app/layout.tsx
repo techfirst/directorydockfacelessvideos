@@ -27,7 +27,12 @@ export default function RootLayout({
                 <VideoIcon className="h-8 w-8 text-orange-300" />
                 <h1 className="text-2xl font-bold">Faceless video list</h1>
               </div>
-              <Button variant="secondary">Submit</Button>
+              <Button
+                variant="outline"
+                className="bg-orange-300 text-primary hover:bg-orange-400"
+              >
+                Submit
+              </Button>
             </div>
           </header>
           <main className="flex-grow">{children}</main>
