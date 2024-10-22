@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -160,6 +161,13 @@ export default function Component() {
       return Object.entries(filters).every(([key, values]) => {
         if (values.length === 0) return true;
         const serviceValue = service[key]?.value;
+
+        // Handle boolean comparisons
+        if (typeof serviceValue === "boolean") {
+          return values.includes(serviceValue.toString());
+        }
+
+        // Handle string comparisons
         return values.includes(serviceValue);
       });
     });
@@ -167,20 +175,28 @@ export default function Component() {
 
   const handleFilterChange = (
     filterName: string,
-    value: string,
-    checked: boolean
+    value: string | boolean,
+    checked?: boolean
   ) => {
     setActiveFilters((prevFilters) => {
       const newFilters = { ...prevFilters };
-      if (checked) {
-        newFilters[filterName] = [...(newFilters[filterName] || []), value];
+      if (typeof value === "boolean") {
+        if (value) {
+          newFilters[filterName] = ["true"];
+        } else {
+          delete newFilters[filterName];
+        }
       } else {
-        newFilters[filterName] = newFilters[filterName].filter(
-          (v) => v !== value
-        );
-      }
-      if (newFilters[filterName].length === 0) {
-        delete newFilters[filterName];
+        if (checked) {
+          newFilters[filterName] = [...(newFilters[filterName] || []), value];
+        } else {
+          newFilters[filterName] = newFilters[filterName].filter(
+            (v) => v !== value
+          );
+        }
+        if (newFilters[filterName].length === 0) {
+          delete newFilters[filterName];
+        }
       }
 
       // Update URL based on the new filters
@@ -230,9 +246,13 @@ export default function Component() {
   const removeFilter = (key: string, value: string) => {
     setActiveFilters((prevFilters) => {
       const newFilters = { ...prevFilters };
-      newFilters[key] = newFilters[key].filter((v) => v !== value);
-      if (newFilters[key].length === 0) {
+      if (value === "true" && newFilters[key]?.includes("true")) {
         delete newFilters[key];
+      } else {
+        newFilters[key] = newFilters[key].filter((v) => v !== value);
+        if (newFilters[key].length === 0) {
+          delete newFilters[key];
+        }
       }
 
       // Update URL based on the new filters
@@ -243,7 +263,6 @@ export default function Component() {
         }
       });
 
-      // Use replace to update the URL without adding to history
       router.replace(`?${params.toString()}`, { scroll: false });
 
       return newFilters;
@@ -293,7 +312,8 @@ export default function Component() {
                   size="sm"
                   onClick={() => removeFilter(key, value)}
                 >
-                  {key}: {value} <X className="ml-2 h-4 w-4" />
+                  {key}: {value === "true" ? "Yes" : value}{" "}
+                  <X className="ml-2 h-4 w-4" />
                 </Button>
               ))
             )}
@@ -351,15 +371,19 @@ export default function Component() {
                             </Label>
                           </div>
                         ))}
-                      {filter.fieldType === "text" && (
-                        <Input
-                          id={`${filter.fieldName}-input`}
-                          placeholder={`Enter ${filter.fieldName.toLowerCase()}`}
-                        />
-                      )}
                       {filter.fieldType === "boolean" && (
                         <div className="flex items-center">
-                          <Switch id={`${filter.fieldName}-switch`} />
+                          <Switch
+                            id={`${filter.fieldName}-switch`}
+                            checked={
+                              activeFilters[filter.fieldName]?.includes(
+                                "true"
+                              ) || false
+                            }
+                            onCheckedChange={(checked) => {
+                              handleFilterChange(filter.fieldName, checked);
+                            }}
+                          />
                           <Label
                             htmlFor={`${filter.fieldName}-switch`}
                             className="ml-2"
@@ -367,6 +391,12 @@ export default function Component() {
                             {filter.fieldName}
                           </Label>
                         </div>
+                      )}
+                      {filter.fieldType === "text" && (
+                        <Input
+                          id={`${filter.fieldName}-input`}
+                          placeholder={`Enter ${filter.fieldName.toLowerCase()}`}
+                        />
                       )}
                     </div>
                   </AccordionContent>
