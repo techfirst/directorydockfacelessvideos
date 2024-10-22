@@ -25,9 +25,9 @@ export default function RootLayout({
             <div className="container mx-auto px-4 py-4 flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 <VideoIcon className="h-8 w-8 text-orange-300" />
-                <h1 className="text-2xl font-bold">AI Video Directory</h1>
+                <h1 className="text-2xl font-bold">Faceless video list</h1>
               </div>
-              <Button variant="secondary">Submit Service</Button>
+              <Button variant="secondary">Submit</Button>
             </div>
           </header>
           <main className="flex-grow">{children}</main>

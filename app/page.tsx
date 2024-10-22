@@ -158,11 +158,12 @@ export default function Component() {
     <>
       <section className="bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2672&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')] bg-cover bg-center text-white py-20">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-4">
-            Discover Faceless AI Video Services
-          </h2>
+          <h1 className="text-4xl font-bold mb-4">
+            Faceless Video List: Your Ultimate AI Video Service Directory
+          </h1>
           <p className="text-xl mb-8">
-            Find the perfect tools for creating engaging faceless content
+            Discover and compare top AI-powered tools for creating captivating
+            faceless video content
           </p>
           <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden flex">
             <Input
