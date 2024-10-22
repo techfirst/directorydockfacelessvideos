@@ -97,6 +97,8 @@ export default function Component() {
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>(
     {}
   );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredServices, setFilteredServices] = useState<any[]>([]);
 
   const handleAccordionChange = (value: string[]) => {
     setOpenItems(value);
@@ -209,8 +211,13 @@ export default function Component() {
           if (checked) {
             newFilters[filterName] = [...(newFilters[filterName] || []), value];
           } else {
-            newFilters[filterName] =
-              newFilters[filterName]?.filter((v) => v !== value) || [];
+            newFilters[filterName] = (newFilters[filterName] || []).filter(
+              (v) => v !== value
+            );
+          }
+          // Remove the filter if all options are unchecked
+          if (newFilters[filterName].length === 0) {
+            delete newFilters[filterName];
           }
         } else {
           newFilters[filterName] = [value];
@@ -259,18 +266,32 @@ export default function Component() {
     },
   ];
 
-  const visibleServices = showAllServices ? services : services.slice(0, 32);
+  const visibleServices = showAllServices
+    ? filteredServices
+    : filteredServices.slice(0, 32);
 
   const removeFilter = (key: string, value: string) => {
     setActiveFilters((prevFilters) => {
       const newFilters = { ...prevFilters };
-      delete newFilters[key];
+      if (Array.isArray(newFilters[key])) {
+        // For dropdown filters, remove only the specific value
+        newFilters[key] = newFilters[key].filter((v) => v !== value);
+        if (newFilters[key].length === 0) {
+          // If no values left, remove the entire filter
+          delete newFilters[key];
+        }
+      } else {
+        // For non-dropdown filters, remove the entire filter
+        delete newFilters[key];
+      }
 
       // Update URL based on the new filters
       const params = new URLSearchParams();
       Object.entries(newFilters).forEach(([filterKey, values]) => {
-        if (values.length > 0) {
+        if (Array.isArray(values) && values.length > 0) {
           params.set(filterKey, values.join(","));
+        } else if (!Array.isArray(values) && values) {
+          params.set(filterKey, values.toString());
         }
       });
 
@@ -280,32 +301,58 @@ export default function Component() {
     });
   };
 
+  const handleSearch = () => {
+    const lowercasedQuery = searchQuery.toLowerCase();
+    const filtered = services.filter(
+      (service) =>
+        service.Name.value.toLowerCase().includes(lowercasedQuery) ||
+        service.Description.value.toLowerCase().includes(lowercasedQuery)
+    );
+    setFilteredServices(filtered);
+  };
+
+  useEffect(() => {
+    if (searchQuery === "") {
+      setFilteredServices(services);
+    } else {
+      handleSearch();
+    }
+  }, [searchQuery, services]);
+
   return (
     <>
       <section className="bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2672&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')] bg-cover bg-center text-white py-20">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold mb-4">
-            Faceless Video List: Your Ultimate AI Video Service Directory
+            Faceless video list: Your ultimate AI video service directory
           </h1>
           <p className="text-xl mb-8">
             Discover and compare top AI-powered tools for creating captivating
             faceless video content
           </p>
-          <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden flex">
-            <Input
-              className="flex-grow border-none"
-              placeholder="Search for AI video services..."
-            />
-            <Button size="lg" className="rounded-none">
-              <Search className="mr-2 h-5 w-5" />
-              SEARCH
-            </Button>
+          <div className="max-w-3xl mx-auto">
+            <div className="relative">
+              <Input
+                className="w-full pr-10 py-2 border-none rounded-full bg-white/90 backdrop-blur-sm text-black placeholder-gray-500 shadow-lg focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out"
+                placeholder={`Search among ${services.length} services ...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition duration-300 ease-in-out"
+                  onClick={() => setSearchQuery("")}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </section>
       <section className="container mx-auto px-4 py-12 relative">
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold">Top AI Video Services</h2>
+          <h2 className="text-2xl font-bold">Faceless video services</h2>
           <Button variant="outline" onClick={() => setIsFilterOpen(true)}>
             <Filter className="mr-2 h-4 w-4" />
             Filter Results
@@ -316,7 +363,7 @@ export default function Component() {
         {Object.keys(activeFilters).length > 0 && (
           <div className="mb-4 flex flex-wrap gap-2">
             {Object.entries(activeFilters).map(([key, values]) =>
-              values.map((value) => (
+              (Array.isArray(values) ? values : [values]).map((value) => (
                 <Button
                   key={`${key}-${value}`}
                   variant="outline"
@@ -477,23 +524,17 @@ export default function Component() {
                                   >
                                     <Checkbox
                                       id={`${filter.fieldName}-${option}`}
-                                      checked={activeFilters[
-                                        filter.fieldName
-                                      ]?.includes(option)}
+                                      checked={
+                                        activeFilters[
+                                          filter.fieldName
+                                        ]?.includes(option) || false
+                                      }
                                       onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          handleFilterChange(
-                                            filter.fieldName,
-                                            option,
-                                            true
-                                          );
-                                        } else {
-                                          handleFilterChange(
-                                            filter.fieldName,
-                                            option,
-                                            false
-                                          );
-                                        }
+                                        handleFilterChange(
+                                          filter.fieldName,
+                                          option,
+                                          checked === true
+                                        );
                                       }}
                                     />
                                     <Label
@@ -562,15 +603,21 @@ export default function Component() {
                 </a>
               ))}
             </div>
-            {!showAllServices && services.length > visibleServices.length && (
-              <div className="mt-8 text-center">
-                <Button
-                  onClick={() => setShowAllServices(true)}
-                  className="bg-orange-300 text-gray-900 hover:bg-orange-400 transition duration-300 ease-in-out"
-                >
-                  Show all
-                </Button>
-              </div>
+            {!showAllServices &&
+              filteredServices.length > visibleServices.length && (
+                <div className="mt-8 text-center">
+                  <Button
+                    onClick={() => setShowAllServices(true)}
+                    className="bg-orange-300 text-gray-900 hover:bg-orange-400 transition duration-300 ease-in-out"
+                  >
+                    Show all
+                  </Button>
+                </div>
+              )}
+            {filteredServices.length === 0 && (
+              <p className="text-center mt-8">
+                No services found matching your search criteria.
+              </p>
             )}
           </>
         )}
