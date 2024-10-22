@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
@@ -20,7 +21,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { DirectoryDockClient } from "directorydockclient";
 import Image from "next/image";
-import { Switch } from "@/components/ui/switch";
 import * as React from "react";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import clsx from "clsx";
@@ -167,8 +167,26 @@ export default function Component() {
           return values.includes(serviceValue.toString());
         }
 
-        // Handle string comparisons
-        return values.includes(serviceValue);
+        // Handle number comparisons
+        if (typeof serviceValue === "number") {
+          return values.some((value) => parseFloat(value) === serviceValue);
+        }
+
+        // Handle date comparisons
+        if (serviceValue instanceof Date) {
+          return values.some(
+            (value) => new Date(value).getTime() === serviceValue.getTime()
+          );
+        }
+
+        // Handle string comparisons (including partial matches for text fields)
+        if (typeof serviceValue === "string") {
+          return values.some((value) =>
+            serviceValue.toLowerCase().includes(value.toLowerCase())
+          );
+        }
+
+        return false;
       });
     });
   };
@@ -180,21 +198,22 @@ export default function Component() {
   ) => {
     setActiveFilters((prevFilters) => {
       const newFilters = { ...prevFilters };
-      if (value === null) {
-        // "Any" option selected, remove the filter
+      if (value === null || value === "") {
+        // Remove the filter if value is null or empty string
         delete newFilters[filterName];
       } else if (typeof value === "boolean") {
         newFilters[filterName] = [value.toString()];
       } else {
-        if (checked) {
-          newFilters[filterName] = [...(newFilters[filterName] || []), value];
+        // Handle multiple selections for dropdown filters
+        if (checked !== undefined) {
+          if (checked) {
+            newFilters[filterName] = [...(newFilters[filterName] || []), value];
+          } else {
+            newFilters[filterName] =
+              newFilters[filterName]?.filter((v) => v !== value) || [];
+          }
         } else {
-          newFilters[filterName] = newFilters[filterName].filter(
-            (v) => v !== value
-          );
-        }
-        if (newFilters[filterName].length === 0) {
-          delete newFilters[filterName];
+          newFilters[filterName] = [value];
         }
       }
 
@@ -338,65 +357,159 @@ export default function Component() {
                   <AccordionTrigger>{filter.fieldName}</AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-2">
-                      {filter.fieldType === "dropdown" &&
-                        filter.options.map((option: string) => (
-                          <div key={option} className="flex items-center">
-                            <Checkbox
-                              id={`${filter.fieldName}-${option}`}
-                              checked={
-                                activeFilters[filter.fieldName]?.includes(
-                                  option
-                                ) || false
-                              }
-                              onCheckedChange={(checked) => {
-                                handleFilterChange(
-                                  filter.fieldName,
-                                  option,
-                                  checked === true
-                                );
-                              }}
-                            />
-                            <Label
-                              htmlFor={`${filter.fieldName}-${option}`}
-                              className="ml-2"
-                            >
-                              {option}
-                            </Label>
-                          </div>
-                        ))}
-                      {filter.fieldType === "boolean" && (
-                        <div className="flex items-center space-x-2">
-                          <Label htmlFor={`${filter.fieldName}-switch`}>
-                            {filter.fieldName}
-                          </Label>
-                          <select
-                            id={`${filter.fieldName}-switch`}
-                            value={activeFilters[filter.fieldName]?.[0] || ""}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              if (value === "") {
-                                handleFilterChange(filter.fieldName, null);
-                              } else {
-                                handleFilterChange(
-                                  filter.fieldName,
-                                  value === "true"
-                                );
-                              }
-                            }}
-                            className="border rounded px-2 py-1"
-                          >
-                            <option value="">Any</option>
-                            <option value="true">Yes</option>
-                            <option value="false">No</option>
-                          </select>
-                        </div>
-                      )}
-                      {filter.fieldType === "text" && (
-                        <Input
-                          id={`${filter.fieldName}-input`}
-                          placeholder={`Enter ${filter.fieldName.toLowerCase()}`}
-                        />
-                      )}
+                      {(() => {
+                        switch (filter.fieldType) {
+                          case "text":
+                          case "email":
+                          case "url":
+                          case "phone":
+                            return (
+                              <Input
+                                id={`${filter.fieldName}-input`}
+                                type={filter.fieldType}
+                                value={
+                                  activeFilters[filter.fieldName]?.[0] || ""
+                                }
+                                onChange={(e) =>
+                                  handleFilterChange(
+                                    filter.fieldName,
+                                    e.target.value
+                                  )
+                                }
+                                placeholder={`Enter ${filter.fieldName.toLowerCase()}`}
+                              />
+                            );
+
+                          case "number":
+                          case "currency":
+                            return (
+                              <Input
+                                id={`${filter.fieldName}-input`}
+                                type="number"
+                                value={
+                                  activeFilters[filter.fieldName]?.[0] || ""
+                                }
+                                onChange={(e) =>
+                                  handleFilterChange(
+                                    filter.fieldName,
+                                    e.target.value
+                                  )
+                                }
+                                placeholder={`Enter ${filter.fieldName.toLowerCase()}`}
+                              />
+                            );
+
+                          case "date":
+                            return (
+                              <Input
+                                id={`${filter.fieldName}-input`}
+                                type="date"
+                                value={
+                                  activeFilters[filter.fieldName]?.[0] || ""
+                                }
+                                onChange={(e) =>
+                                  handleFilterChange(
+                                    filter.fieldName,
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            );
+
+                          case "richText":
+                            return (
+                              <Textarea
+                                id={`${filter.fieldName}-input`}
+                                value={
+                                  activeFilters[filter.fieldName]?.[0] || ""
+                                }
+                                onChange={(e) =>
+                                  handleFilterChange(
+                                    filter.fieldName,
+                                    e.target.value
+                                  )
+                                }
+                                placeholder={`Enter ${filter.fieldName.toLowerCase()}`}
+                              />
+                            );
+
+                          case "boolean":
+                            return (
+                              <div className="flex items-center space-x-2">
+                                <Label htmlFor={`${filter.fieldName}-switch`}>
+                                  {filter.fieldName}
+                                </Label>
+                                <select
+                                  id={`${filter.fieldName}-switch`}
+                                  value={
+                                    activeFilters[filter.fieldName]?.[0] || ""
+                                  }
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === "") {
+                                      handleFilterChange(
+                                        filter.fieldName,
+                                        null
+                                      );
+                                    } else {
+                                      handleFilterChange(
+                                        filter.fieldName,
+                                        value === "true"
+                                      );
+                                    }
+                                  }}
+                                  className="border rounded px-2 py-1"
+                                >
+                                  <option value="">Any</option>
+                                  <option value="true">Yes</option>
+                                  <option value="false">No</option>
+                                </select>
+                              </div>
+                            );
+
+                          case "dropdown":
+                            return (
+                              <div className="space-y-2">
+                                {filter.options.map((option: string) => (
+                                  <div
+                                    key={option}
+                                    className="flex items-center space-x-2"
+                                  >
+                                    <Checkbox
+                                      id={`${filter.fieldName}-${option}`}
+                                      checked={activeFilters[
+                                        filter.fieldName
+                                      ]?.includes(option)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          handleFilterChange(
+                                            filter.fieldName,
+                                            option,
+                                            true
+                                          );
+                                        } else {
+                                          handleFilterChange(
+                                            filter.fieldName,
+                                            option,
+                                            false
+                                          );
+                                        }
+                                      }}
+                                    />
+                                    <Label
+                                      htmlFor={`${filter.fieldName}-${option}`}
+                                    >
+                                      {option}
+                                    </Label>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+
+                          default:
+                            return null;
+                        }
+                      })()}
                     </div>
                   </AccordionContent>
                 </AccordionItem>
