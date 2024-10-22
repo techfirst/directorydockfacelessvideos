@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Search,
   Filter,
@@ -25,6 +25,7 @@ import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import clsx from "clsx";
 import { truncateText } from "@/lib/utils"; // You'll need to create this utility function
 import { useRouter, useSearchParams } from "next/navigation";
+import debounce from "lodash/debounce";
 
 const cn = (...classes: (string | undefined)[]) => {
   return clsx(classes);
@@ -111,8 +112,9 @@ export default function Component() {
     // setIsFilterOpen(false);
   }, [searchParams]);
 
-  useEffect(() => {
-    async function fetchData() {
+  const debouncedFetchData = useCallback(
+    debounce(async (filters: Record<string, string[]>) => {
+      // Your existing fetchData logic here
       const key = process.env.NEXT_PUBLIC_DIRECTORY_DOCK_API_KEY;
       if (!key) {
         setError("API key not found. Please check your environment variables.");
@@ -133,7 +135,7 @@ export default function Component() {
         // Apply filters to the fetched services
         const filteredServices = applyFiltersToServices(
           servicesResponse.entries,
-          activeFilters
+          filters
         );
         setServices(filteredServices);
       } catch (err) {
@@ -142,9 +144,13 @@ export default function Component() {
       } finally {
         setIsLoading(false);
       }
-    }
-    fetchData();
-  }, [activeFilters]); // Add activeFilters as a dependency
+    }, 300),
+    []
+  );
+
+  useEffect(() => {
+    debouncedFetchData(activeFilters);
+  }, [activeFilters, debouncedFetchData]);
 
   const applyFiltersToServices = (
     services: any[],
@@ -228,25 +234,20 @@ export default function Component() {
       if (newFilters[key].length === 0) {
         delete newFilters[key];
       }
+
+      // Update URL based on the new filters
+      const params = new URLSearchParams();
+      Object.entries(newFilters).forEach(([filterKey, values]) => {
+        if (values.length > 0) {
+          params.set(filterKey, values.join(","));
+        }
+      });
+
+      // Use replace to update the URL without adding to history
+      router.replace(`?${params.toString()}`, { scroll: false });
+
       return newFilters;
     });
-
-    // Update URL
-    const params = new URLSearchParams(searchParams.toString());
-    const remainingValues = activeFilters[key]?.filter((v) => v !== value);
-    if (remainingValues && remainingValues.length > 0) {
-      params.set(key, remainingValues.join(","));
-    } else {
-      params.delete(key);
-    }
-
-    // Remove the parameter entirely if it's empty
-    if (params.get(key) === "") {
-      params.delete(key);
-    }
-
-    const newUrl = params.toString() ? `?${params.toString()}` : "";
-    router.push(newUrl, { scroll: false });
   };
 
   return (
