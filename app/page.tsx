@@ -85,7 +85,8 @@ AccordionContent.displayName = "AccordionContent";
 
 export default function Component() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const [searchParamsState, setSearchParamsState] =
+    useState<URLSearchParams | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [services, setServices] = useState<any[]>([]);
@@ -105,15 +106,20 @@ export default function Component() {
   };
 
   useEffect(() => {
+    // This effect runs only on the client side
+    setSearchParamsState(new URLSearchParams(window.location.search));
+  }, []);
+
+  useEffect(() => {
     // Parse URL params and set initial filters
-    const urlFilters: Record<string, string[]> = {};
-    searchParams.forEach((value, key) => {
-      urlFilters[key] = value.split(",");
-    });
-    setActiveFilters(urlFilters);
-    // Remove this line to prevent closing the sidebar when filters change
-    // setIsFilterOpen(false);
-  }, [searchParams]);
+    if (searchParamsState) {
+      const urlFilters: Record<string, string[]> = {};
+      searchParamsState.forEach((value, key) => {
+        urlFilters[key] = value.split(",");
+      });
+      setActiveFilters(urlFilters);
+    }
+  }, [searchParamsState]);
 
   const debouncedFetchData = useCallback(
     debounce(async (filters: Record<string, string[]>) => {
