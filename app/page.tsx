@@ -107,7 +107,8 @@ export default function Component() {
       urlFilters[key] = value.split(",");
     });
     setActiveFilters(urlFilters);
-    setIsFilterOpen(false);
+    // Remove this line to prevent closing the sidebar when filters change
+    // setIsFilterOpen(false);
   }, [searchParams]);
 
   useEffect(() => {
@@ -175,19 +176,18 @@ export default function Component() {
       if (newFilters[filterName].length === 0) {
         delete newFilters[filterName];
       }
+
+      // Update URL based on the new filters
+      const params = new URLSearchParams();
+      Object.entries(newFilters).forEach(([key, values]) => {
+        if (values.length > 0) {
+          params.set(key, values.join(","));
+        }
+      });
+      router.replace(`?${params.toString()}`, { scroll: false });
+
       return newFilters;
     });
-
-    // Update URL immediately
-    const params = new URLSearchParams(searchParams.toString());
-    Object.entries(activeFilters).forEach(([key, values]) => {
-      if (values.length > 0) {
-        params.set(key, values.join(","));
-      } else {
-        params.delete(key);
-      }
-    });
-    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const faqItems = [
