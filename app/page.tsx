@@ -45,6 +45,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import debounce from "lodash/debounce";
 
+import CategoryBrowser from "./components/CategoryBrowser";
+
 const cn = (...classes: (string | undefined)[]) => {
   return clsx(classes);
 };
@@ -892,45 +894,9 @@ export default function Component() {
         )}
       </section>
 
-      <section className="bg-gray-900 text-white py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-2">F.A.Q.</h2>
+      {/* Add the CategoryBrowser component here */}
 
-          <p className="text-xl text-center mb-12">
-            Got questions? We&apos;ve got answers.
-          </p>
-
-          <div className="max-w-3xl mx-auto space-y-4">
-            {faqItems.map((item, index) => (
-              <div
-                key={index}
-                className={`bg-white rounded-2xl overflow-hidden transition-all duration-300 ease-in-out ${
-                  expandedFaq === index ? "ring-2 ring-red-500" : ""
-                }`}
-              >
-                <button
-                  className="w-full px-6 py-4 text-left text-gray-900 font-semibold flex justify-between items-center hover:bg-gray-50 transition-colors duration-300"
-                  onClick={() =>
-                    setExpandedFaq(expandedFaq === index ? null : index)
-                  }
-                >
-                  {item.question}
-
-                  {expandedFaq === index ? (
-                    <ChevronUp className="h-5 w-5 text-red-500" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 text-gray-500" />
-                  )}
-                </button>
-
-                {expandedFaq === index && (
-                  <div className="px-6 py-4 text-gray-700">{item.answer}</div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <CategoryBrowser />
 
       <section className="bg-gray-100 py-16">
         <div className="container mx-auto px-4">
@@ -989,6 +955,46 @@ export default function Component() {
               <Button type="submit">Submit</Button>
             </div>
           </form>
+        </div>
+      </section>
+
+      <section className="bg-gray-900 text-white py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-bold text-center mb-2">F.A.Q.</h2>
+
+          <p className="text-xl text-center mb-12">
+            Got questions? We&apos;ve got answers.
+          </p>
+
+          <div className="max-w-3xl mx-auto space-y-4">
+            {faqItems.map((item, index) => (
+              <div
+                key={index}
+                className={`bg-white rounded-2xl overflow-hidden transition-all duration-300 ease-in-out ${
+                  expandedFaq === index ? "ring-2 ring-red-500" : ""
+                }`}
+              >
+                <button
+                  className="w-full px-6 py-4 text-left text-gray-900 font-semibold flex justify-between items-center hover:bg-gray-50 transition-colors duration-300"
+                  onClick={() =>
+                    setExpandedFaq(expandedFaq === index ? null : index)
+                  }
+                >
+                  {item.question}
+
+                  {expandedFaq === index ? (
+                    <ChevronUp className="h-5 w-5 text-red-500" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-gray-500" />
+                  )}
+                </button>
+
+                {expandedFaq === index && (
+                  <div className="px-6 py-4 text-gray-700">{item.answer}</div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
