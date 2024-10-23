@@ -11,8 +11,13 @@ export async function GET() {
   const client = new DirectoryDockClient(key);
 
   try {
-    const servicesResponse = await client.getEntries(1, 1000);
+    const [servicesResponse, categoriesResponse] = await Promise.all([
+      client.getEntries(1, 1000),
+      client.getCategories(),
+    ]);
+
     const services = servicesResponse.entries;
+    const categories = categoriesResponse;
 
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL || "https://facelessvideolist.com"; // Replace with your actual domain
@@ -35,6 +40,18 @@ export async function GET() {
           <lastmod>${currentDate}</lastmod>
           <changefreq>weekly</changefreq>
           <priority>0.7</priority>
+        </url>
+      `
+        )
+        .join("")}
+      ${categories
+        .map(
+          (category) => `
+        <url>
+          <loc>${baseUrl}/categories/${category.slug}</loc>
+          <lastmod>${currentDate}</lastmod>
+          <changefreq>weekly</changefreq>
+          <priority>0.6</priority>
         </url>
       `
         )
