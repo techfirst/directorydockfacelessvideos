@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { VideoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -36,6 +37,18 @@ export default function RootLayout({
             </div>
           </header>
           <main className="flex-grow">{children}</main>
+          <footer className="bg-gray-800 text-white py-4">
+            <div className="container mx-auto px-4 text-center">
+              <Link
+                href="https://www.x.com/stellan79"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-sm text-gray-400 hover:text-white transition-colors"
+              >
+                Made by → @stellan79
+              </Link>
+            </div>
+          </footer>
         </div>
       </body>
     </html>
