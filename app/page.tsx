@@ -591,24 +591,28 @@ export default function Component() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {visibleServices.map((service) => (
                 <a
-                  key={service.Id}
-                  href={`/${service.Slug.value}`}
+                  key={service.id}
+                  href={
+                    service.data.Slug?.value
+                      ? `/${service.data.Slug.value}`
+                      : "#"
+                  }
                   className="block bg-white p-6 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-xl h-full flex flex-col"
                 >
-                  {service.Image && service.Image.value && (
+                  {service.data.Image && service.data.Image.value && (
                     <Image
-                      src={service.Image.value}
-                      alt={service.Name.value}
+                      src={service.data.Image.value}
+                      alt={service.data.Name.value}
                       width={300}
                       height={200}
                       className="w-full h-40 object-cover mb-4 rounded"
                     />
                   )}
                   <h3 className="font-semibold text-lg mb-2">
-                    {service.Name.value}
+                    {service.data.Name.value}
                   </h3>
                   <p className="text-sm text-muted-foreground mb-4 flex-grow">
-                    {truncateText(service.Description.value, 100)}
+                    {truncateText(service.data.Description.value, 100)}
                   </p>
                 </a>
               ))}
