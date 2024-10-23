@@ -144,6 +144,10 @@ export default function Component() {
 
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
 
+  const [categoryMap, setCategoryMap] = useState<Record<string, string>>({});
+
+  const [isCategoryMapReady, setIsCategoryMapReady] = useState(false);
+
   const handleAccordionChange = (value: string[]) => {
     setOpenItems(value);
   };
@@ -151,22 +155,28 @@ export default function Component() {
   useEffect(() => {
     // This effect runs only on the client side
 
-    setSearchParamsState(new URLSearchParams(window.location.search));
-  }, []);
+    const params = new URLSearchParams(window.location.search);
 
-  useEffect(() => {
-    // Parse URL params and set initial filters
+    setSearchParamsState(params);
 
-    if (searchParamsState) {
-      const urlFilters: Record<string, string[]> = {};
+    // Parse categories from URL
 
-      searchParamsState.forEach((value, key) => {
+    const urlCategories = params.get("categories")?.split(",") || [];
+
+    setSelectedCategories(urlCategories);
+
+    // Parse other filters
+
+    const urlFilters: Record<string, string[]> = {};
+
+    params.forEach((value, key) => {
+      if (key !== "categories") {
         urlFilters[key] = value.split(",");
-      });
+      }
+    });
 
-      setActiveFilters(urlFilters);
-    }
-  }, [searchParamsState]);
+    setActiveFilters(urlFilters);
+  }, []);
 
   const debouncedFetchData = useCallback(
     debounce(async (filters: Record<string, string[]>) => {
@@ -198,11 +208,19 @@ export default function Component() {
 
         console.log("Categories received:", categoriesResponse);
 
-        // Directly set the categories from the response
+        // Update categories and create a map of category IDs to names
 
         setCategories(categoriesResponse);
 
-        console.log("Categories state after setting:", categories);
+        const newCategoryMap: Record<string, string> = {};
+
+        categoriesResponse.forEach((category: any) => {
+          newCategoryMap[category.id] = category.name;
+        });
+
+        setCategoryMap(newCategoryMap);
+
+        setIsCategoryMapReady(true);
 
         // Apply filters to the fetched services
 
@@ -410,45 +428,56 @@ export default function Component() {
     : filteredServices.slice(0, 32);
 
   const removeFilter = (key: string, value: string) => {
-    setActiveFilters((prevFilters) => {
-      const newFilters = { ...prevFilters };
+    if (key === "categories") {
+      setSelectedCategories((prev) => prev.filter((id) => id !== value));
+    } else {
+      setActiveFilters((prevFilters) => {
+        const newFilters = { ...prevFilters };
 
-      if (Array.isArray(newFilters[key])) {
-        // For dropdown filters, remove only the specific value
+        if (Array.isArray(newFilters[key])) {
+          newFilters[key] = newFilters[key].filter((v) => v !== value);
 
-        newFilters[key] = newFilters[key].filter((v) => v !== value);
-
-        if (newFilters[key].length === 0) {
-          // If no values left, remove the entire filter
-
+          if (newFilters[key].length === 0) {
+            delete newFilters[key];
+          }
+        } else {
           delete newFilters[key];
         }
-      } else {
-        // For non-dropdown filters, remove the entire filter
 
-        delete newFilters[key];
-      }
-
-      // Update URL based on the new filters
-
-      const params = new URLSearchParams();
-
-      Object.entries(newFilters).forEach(([filterKey, values]) => {
-        if (Array.isArray(values) && values.length > 0) {
-          params.set(filterKey, values.join(","));
-        } else if (
-          !Array.isArray(values) &&
-          values !== undefined &&
-          values !== null
-        ) {
-          params.set(filterKey, String(values));
-        }
+        return newFilters;
       });
+    }
 
-      router.replace(`?${params.toString()}`, { scroll: false });
+    // Update URL
 
-      return newFilters;
-    });
+    const params = new URLSearchParams(window.location.search);
+
+    if (key === "categories") {
+      const newCategories = selectedCategories.filter((id) => id !== value);
+
+      if (newCategories.length > 0) {
+        params.set("categories", newCategories.join(","));
+      } else {
+        params.delete("categories");
+      }
+    } else {
+      if (params.has(key)) {
+        const values = params
+
+          .get(key)!
+          .split(",")
+
+          .filter((v) => v !== value);
+
+        if (values.length > 0) {
+          params.set(key, values.join(","));
+        } else {
+          params.delete(key);
+        }
+      }
+    }
+
+    router.replace(`?${params.toString()}`, { scroll: false });
   };
 
   const handleSearch = () => {
@@ -524,7 +553,8 @@ export default function Component() {
 
         {/* Display active filters */}
 
-        {Object.keys(activeFilters).length > 0 && (
+        {(Object.keys(activeFilters).length > 0 ||
+          (selectedCategories.length > 0 && isCategoryMapReady)) && (
           <div className="mb-4 flex flex-wrap gap-2">
             {Object.entries(activeFilters).map(([key, values]) =>
               (Array.isArray(values) ? values : [values]).map((value) => (
@@ -540,6 +570,19 @@ export default function Component() {
                 </Button>
               ))
             )}
+
+            {isCategoryMapReady &&
+              selectedCategories.map((categoryId) => (
+                <Button
+                  key={`category-${categoryId}`}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeFilter("categories", categoryId)}
+                >
+                  Category: {categoryMap[categoryId]}{" "}
+                  <X className="ml-2 h-4 w-4" />
+                </Button>
+              ))}
           </div>
         )}
 
