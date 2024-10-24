@@ -65,14 +65,20 @@ export default function CategoryBrowser() {
             <Link
               href={`/categories/${category.slug}`}
               key={category.id}
-              className="block"
+              className="block bg-white rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-xl h-full flex flex-col overflow-hidden border border-gray-200"
             >
-              <div className="bg-white p-6 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-xl h-full flex flex-col">
-                <h3 className="text-xl font-semibold mb-2">{category.name}</h3>
-
-                <p className="text-gray-600 flex-grow">
+              <div className="p-6 flex-grow">
+                <h3 className="font-semibold text-lg mb-2 text-gray-800">
+                  {category.name}
+                </h3>
+                <p className="text-sm text-muted-foreground">
                   {category.description}
                 </p>
+              </div>
+              <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <span className="text-sm font-medium text-gray-600">
+                  Explore category →
+                </span>
               </div>
             </Link>
           ))}
