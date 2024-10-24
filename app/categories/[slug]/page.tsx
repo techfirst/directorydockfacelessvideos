@@ -119,19 +119,21 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
             <Link
               href={`/${service.Slug.value}`}
               key={service.id}
-              className="block"
+              className="block bg-white rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-xl h-full flex flex-col overflow-hidden"
             >
-              <div className="bg-white p-6 rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-xl h-full flex flex-col">
-                {service.Image && (
+              {service.Image && (
+                <div className="relative w-full h-40">
                   <Image
                     src={service.Image.value}
                     alt={service.Name.value}
-                    width={300}
-                    height={200}
-                    className="w-full h-40 object-cover mb-4 rounded"
+                    fill
+                    style={{ objectFit: "cover" }}
+                    className="w-full h-full"
                   />
-                )}
+                </div>
+              )}
 
+              <div className="p-6 flex-grow">
                 <h3 className="font-semibold text-lg mb-2">
                   {service.Name.value}
                 </h3>

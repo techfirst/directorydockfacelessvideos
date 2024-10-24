@@ -8,9 +8,9 @@ import Link from "next/link";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AI Video Directory",
+  title: "Faceless video directory | Best Faceless Video AI Creation Tools",
   description:
-    "Discover and compare the best AI-powered video creation tools for your projects.",
+    "Explore our comprehensive directory of AI-powered faceless video creation tools. Compare features, pricing, and user reviews to find the perfect solution for your content creation needs. Streamline your workflow and create stunning videos effortlessly with cutting-edge AI technology.",
 };
 
 export default function RootLayout({
