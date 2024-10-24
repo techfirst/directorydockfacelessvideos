@@ -24,10 +24,10 @@ export default function RootLayout({
         <div className="min-h-screen bg-background flex flex-col">
           <header className="bg-primary text-primary-foreground">
             <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-              <div className="flex items-center space-x-2">
+              <Link href="/" className="flex items-center space-x-2">
                 <VideoIcon className="h-8 w-8 text-orange-300" />
                 <h1 className="text-2xl font-bold">Faceless video list</h1>
-              </div>
+              </Link>
               <Button
                 variant="outline"
                 className="bg-orange-300 text-primary hover:bg-orange-400"
