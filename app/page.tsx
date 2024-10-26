@@ -17,6 +17,7 @@ import {
   Phone,
   MapPin,
   X,
+  Loader2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import debounce from "lodash/debounce";
 
 import CategoryBrowser from "./components/CategoryBrowser";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import CategoryButtons from "./components/CategoryButtons";
 
 const cn = (...classes: (string | undefined)[]) => {
   return clsx(classes);
@@ -149,6 +160,12 @@ export default function Component() {
   const [categoryMap, setCategoryMap] = useState<Record<string, string>>({});
 
   const [isCategoryMapReady, setIsCategoryMapReady] = useState(false);
+
+  const [submitFields, setSubmitFields] = useState<any[]>([]);
+  const [submitFormData, setSubmitFormData] = useState<Record<string, any>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleAccordionChange = (value: string[]) => {
     setOpenItems(value);
@@ -529,6 +546,150 @@ export default function Component() {
     console.log("Categories updated:", categories);
   }, [categories]);
 
+  useEffect(() => {
+    async function fetchSubmitFields() {
+      const key = process.env.NEXT_PUBLIC_DIRECTORY_DOCK_API_KEY;
+      if (!key) {
+        console.error("API key not found");
+        return;
+      }
+
+      const client = new DirectoryDockClient(key);
+      try {
+        const fields = await client.getSubmitFields();
+        setSubmitFields(fields);
+        // Initialize form data with empty values
+        const initialFormData: Record<string, any> = {};
+        fields.forEach((field: any) => {
+          initialFormData[field.FieldName] = "";
+        });
+        setSubmitFormData(initialFormData);
+      } catch (err) {
+        console.error("Failed to fetch submit fields:", err);
+      }
+    }
+
+    fetchSubmitFields();
+  }, []);
+
+  const handleSubmitFormChange = (fieldName: string, value: any) => {
+    setSubmitFormData((prev) => ({ ...prev, [fieldName]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitError(null);
+    setSubmitSuccess(false);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/submit-form", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submitFormData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Form submitted successfully:", result);
+      setSubmitSuccess(true);
+      setSubmitFormData({}); // Clear the form after successful submission
+    } catch (error: unknown) {
+      console.error("Error submitting form:", error);
+      if (error instanceof Error) {
+        setSubmitError(`Failed to submit the form: ${error.message}`);
+      } else {
+        setSubmitError("Failed to submit the form: An unknown error occurred");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const renderField = (field: any) => {
+    const commonProps = {
+      id: field.FieldName,
+      name: field.FieldName,
+      required: field.Required,
+      value: submitFormData[field.FieldName] || "",
+      onChange: (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      ) => handleSubmitFormChange(field.FieldName, e.target.value),
+    };
+
+    switch (field.FieldType) {
+      case "text":
+      case "email":
+      case "url":
+      case "phone":
+        return <Input {...commonProps} type={field.FieldType} />;
+
+      case "number":
+      case "currency":
+        return <Input {...commonProps} type="number" />;
+
+      case "date":
+        return <Input {...commonProps} type="date" />;
+
+      case "richText":
+        return <Textarea {...commonProps} />;
+
+      case "boolean":
+        return (
+          <Checkbox
+            id={field.FieldName}
+            name={field.FieldName}
+            checked={submitFormData[field.FieldName] || false}
+            onCheckedChange={(checked) =>
+              handleSubmitFormChange(field.FieldName, checked)
+            }
+          />
+        );
+
+      case "dropdown":
+        return (
+          <Select
+            value={submitFormData[field.FieldName] || ""}
+            onValueChange={(value: string) =>
+              handleSubmitFormChange(field.FieldName, value)
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {field.Options.split(",").map((option: string) => (
+                <SelectItem key={option.trim()} value={option.trim()}>
+                  {option.trim()}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+
+      case "image":
+        return (
+          <Input
+            {...commonProps}
+            type="file"
+            accept="image/*"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const file = e.target.files?.[0];
+              handleSubmitFormChange(field.FieldName, file);
+            }}
+          />
+        );
+
+      default:
+        return <Input {...commonProps} />;
+    }
+  };
+
   return (
     <>
       <section className="bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2672&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')] bg-cover bg-center text-white py-20">
@@ -536,21 +697,18 @@ export default function Component() {
           <h1 className="text-4xl font-bold mb-4">
             Faceless video list: Your ultimate AI video service directory
           </h1>
-
           <p className="text-xl mb-8">
             Discover and compare top AI-powered tools for creating captivating
             faceless video content
           </p>
-
           <div className="max-w-3xl mx-auto">
-            <div className="relative">
+            <div className="relative mb-4">
               <Input
                 className="w-full pr-10 py-2 border-none rounded-full bg-white/90 backdrop-blur-sm text-black placeholder-gray-500 shadow-lg focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out"
                 placeholder={`Search among ${services.length} services ...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-
               {searchQuery && (
                 <button
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition duration-300 ease-in-out"
@@ -560,6 +718,12 @@ export default function Component() {
                 </button>
               )}
             </div>
+            {/* Add CategoryButtons directly under the search input */}
+            <CategoryButtons
+              categories={categories}
+              selectedCategories={selectedCategories}
+              onCategoryChange={handleCategoryChange}
+            />
           </div>
         </div>
       </section>
@@ -923,63 +1087,49 @@ export default function Component() {
 
       <CategoryBrowser />
 
-      <section className="bg-gray-100 py-16">
+      <section id="submit-form" className="bg-gray-100 py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">
             Submit Your AI Video Service
           </h2>
 
-          <form className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+          <form
+            onSubmit={handleSubmit}
+            className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md"
+          >
             <div className="grid gap-6">
-              <div>
-                <Label htmlFor="service-name">Service Name</Label>
-
-                <Input
-                  id="service-name"
-                  placeholder="Enter your service name"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="service-description">Service Description</Label>
-
-                <Textarea
-                  id="service-description"
-                  placeholder="Describe your AI video service"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="service-url">Service URL</Label>
-
-                <Input
-                  id="service-url"
-                  type="url"
-                  placeholder="https://your-service-url.com"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="contact-email">Contact Email</Label>
-
-                <Input
-                  id="contact-email"
-                  type="email"
-                  placeholder="your@email.com"
-                />
-              </div>
-
-              <div>
-                <Label className="flex items-center space-x-2">
-                  <Checkbox id="terms" />
-
-                  <span>I agree to the terms and conditions</span>
-                </Label>
-              </div>
-
-              <Button type="submit">Submit</Button>
+              {submitFields.map((field) => (
+                <div key={field.FieldName}>
+                  <Label htmlFor={field.FieldName}>
+                    {field.FieldLabel}
+                    {field.Required && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
+                  </Label>
+                  {renderField(field)}
+                </div>
+              ))}
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit"
+                )}
+              </Button>
             </div>
           </form>
+
+          {submitError && (
+            <p className="text-red-500 text-center mt-4">{submitError}</p>
+          )}
+          {submitSuccess && (
+            <p className="text-green-500 text-center mt-4">
+              Your service has been submitted successfully!
+            </p>
+          )}
         </div>
       </section>
 
