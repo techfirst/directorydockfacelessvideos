@@ -2,7 +2,6 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { VideoIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 const inter = Inter({ subsets: ["latin"] });
