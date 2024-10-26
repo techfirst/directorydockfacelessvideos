@@ -406,60 +406,60 @@ export default function Component() {
 
   const faqItems = [
     {
-      question: "What is AI Video Directory?",
+      question: "What is Faceless video list?",
       answer:
-        "AI Video Directory is a comprehensive platform that showcases various AI-powered tools and services for creating faceless video content. It helps content creators, marketers, and businesses discover and compare the best AI solutions for their video projects, streamlining the process of finding the right tools for their specific needs.",
+        "Faceless video list is a comprehensive platform that showcases various AI-powered tools and services for creating faceless video content. It helps content creators, marketers, and businesses discover and compare the best AI solutions for their video projects, streamlining the process of finding the right tools for their specific needs.",
     },
     {
       question:
-        "How can I use AI Video Directory to find the best AI video tools?",
+        "How can I use Faceless video list to find the best AI video tools?",
       answer:
-        "You can use AI Video Directory to search for specific AI video tools, compare different services, and find the best solutions for your faceless video creation needs. Simply browse the listings, use the search function to find relevant tools, or apply filters based on categories, pricing, and features to narrow down your options. Our directory provides detailed information about each tool, including key features, pricing, and user reviews.",
+        "You can use Faceless video list to search for specific AI video tools, compare different services, and find the best solutions for your faceless video creation needs. Simply browse the listings, use the search function to find relevant tools, or apply filters based on categories, pricing, and features to narrow down your options. Our directory provides detailed information about each tool, including key features, pricing, and user reviews.",
     },
     {
-      question: "Is the AI Video Directory free to use?",
+      question: "Is Faceless video list free to use?",
       answer:
-        "Yes, browsing and searching the AI Video Directory is completely free. We believe in providing open access to information about AI video tools to help creators make informed decisions. However, please note that the individual tools and services listed may have their own pricing structures, which you'll need to check directly with the service providers.",
+        "Yes, browsing and searching Faceless video list is completely free. We believe in providing open access to information about AI video tools to help creators make informed decisions. However, please note that the individual tools and services listed may have their own pricing structures, which you'll need to check directly with the service providers.",
     },
     {
       question:
-        "How often is the AI Video Directory updated with new tools and services?",
+        "How often is Faceless video list updated with new tools and services?",
       answer:
-        "We strive to keep the AI Video Directory up-to-date with the latest AI video creation tools and services. Our team regularly reviews and adds new entries to ensure you have access to the most current information. We also encourage service providers to submit their tools for inclusion, which helps us maintain a comprehensive and current directory.",
+        "We strive to keep Faceless video list up-to-date with the latest AI video creation tools and services. Our team regularly reviews and adds new entries to ensure you have access to the most current information. We also encourage service providers to submit their tools for inclusion, which helps us maintain a comprehensive and current directory.",
     },
     {
       question: "What types of AI video tools can I find in the directory?",
       answer:
-        "The AI Video Directory covers a wide range of AI-powered video creation tools, including but not limited to: text-to-video generators, video editing software with AI capabilities, AI-powered animation tools, voice synthesis for video narration, automated video captioning and subtitling services, AI-driven video analytics tools, and more. Whether you're looking for tools to create explainer videos, social media content, or educational materials, you'll find relevant options in our directory.",
+        "Faceless video list covers a wide range of AI-powered video creation tools, including but not limited to: text-to-video generators, video editing software with AI capabilities, AI-powered animation tools, voice synthesis for video narration, automated video captioning and subtitling services, AI-driven video analytics tools, and more. Whether you're looking for tools to create explainer videos, social media content, or educational materials, you'll find relevant options in our directory.",
     },
     {
-      question: "How can I add my AI video service to the directory?",
+      question: "How can I add my AI video service to Faceless video list?",
       answer:
-        "To add your service to the AI Video Directory, click on the 'Submit Service' button at the top of the page. You'll be guided through a simple process to submit your service for review. Our team will verify the information and, if approved, add your service to the directory. We strive to maintain a high-quality list of services, so please ensure your submission is accurate, relevant, and provides value to our users.",
+        "To add your service to Faceless video list, click on the 'Submit Service' button at the top of the page. You'll be guided through a simple process to submit your service for review. Our team will verify the information and, if approved, add your service to the directory. We strive to maintain a high-quality list of services, so please ensure your submission is accurate, relevant, and provides value to our users.",
     },
     {
       question:
-        "Can I leave reviews or ratings for the AI video tools listed in the directory?",
+        "Can I leave reviews or ratings for the AI video tools listed in Faceless video list?",
       answer:
         "Currently, we don't have a built-in review system, but we're considering adding this feature in the future. In the meantime, we encourage users to share their experiences with specific tools in our community forums or on social media. You can also contact us if you have significant feedback about a listed service that you believe should be reflected in our directory.",
     },
     {
       question:
-        "How does AI Video Directory ensure the quality and accuracy of listed services?",
+        "How does Faceless video list ensure the quality and accuracy of listed services?",
       answer:
         "We have a dedicated team that researches and verifies information about each service before it's added to our directory. We also regularly update existing listings to ensure accuracy. However, as AI technology evolves rapidly, we encourage users to always check the latest information directly with the service providers. If you notice any discrepancies or outdated information, please let us know, and we'll investigate and update accordingly.",
     },
     {
       question:
-        "Are the AI video tools in the directory suitable for beginners?",
+        "Are the AI video tools in Faceless video list suitable for beginners?",
       answer:
         "Our directory includes AI video tools suitable for users of all skill levels, from beginners to advanced professionals. Many of the listed tools are designed with user-friendly interfaces and offer templates or automated features that make video creation accessible to newcomers. We recommend using our filtering options to find tools that match your experience level and specific needs.",
     },
     {
       question:
-        "What is the future of AI in video creation, and how does AI Video Directory stay current?",
+        "What is the future of AI in video creation, and how does Faceless video list stay current?",
       answer:
-        "AI is rapidly transforming video creation, making it more accessible, efficient, and innovative. We expect to see advancements in areas like real-time video generation, personalized content creation, and enhanced video editing capabilities. AI Video Directory stays current by continuously monitoring the industry, attending relevant conferences, and maintaining relationships with AI video tool developers. We regularly update our listings and add new categories to reflect the latest trends and technologies in AI-powered video creation.",
+        "AI is rapidly transforming video creation, making it more accessible, efficient, and innovative. We expect to see advancements in areas like real-time video generation, personalized content creation, and enhanced video editing capabilities. Faceless video list stays current by continuously monitoring the industry, attending relevant conferences, and maintaining relationships with AI video tool developers. We regularly update our listings and add new categories to reflect the latest trends and technologies in AI-powered video creation.",
     },
   ];
 
@@ -1090,7 +1090,7 @@ export default function Component() {
       <section id="submit-form" className="bg-gray-100 py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">
-            Submit Your AI Video Service
+            Submit faceless video service
           </h2>
 
           <form
