@@ -54,7 +54,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../components/ui/select";
 
 import CategoryButtons from "./components/CategoryButtons";
 
@@ -655,7 +655,7 @@ export default function Component() {
         return (
           <Select
             value={submitFormData[field.FieldName] || ""}
-            onValueChange={(value: string) =>
+            onValueChange={(value) =>
               handleSubmitFormChange(field.FieldName, value)
             }
           >
@@ -663,9 +663,9 @@ export default function Component() {
               <SelectValue placeholder="Select an option" />
             </SelectTrigger>
             <SelectContent>
-              {field.Options.split(",").map((option: string) => (
-                <SelectItem key={option.trim()} value={option.trim()}>
-                  {option.trim()}
+              {field.Options?.map((option: string) => (
+                <SelectItem key={option} value={option}>
+                  {option}
                 </SelectItem>
               ))}
             </SelectContent>
