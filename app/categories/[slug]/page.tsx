@@ -6,8 +6,6 @@ import { useState, useEffect } from "react";
 
 import { useRouter } from "next/navigation";
 
-import { DirectoryDockClient } from "directorydockclient";
-
 import Link from "next/link";
 
 import Image from "next/image";
@@ -27,40 +25,29 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
 
   useEffect(() => {
     async function fetchCategoryAndServices() {
-      const key = process.env.NEXT_PUBLIC_DIRECTORY_DOCK_API_KEY;
-
-      if (!key) {
-        setError("API key not found. Please check your environment variables.");
-
-        setIsLoading(false);
-
-        return;
-      }
-
-      const client = new DirectoryDockClient(key);
-
       try {
         const [categoriesResponse, servicesResponse] = await Promise.all([
-          client.getCategories(),
-
-          client.getEntries(1, 100), // Fetch up to 100 services, adjust as needed
+          fetch("/api/categories").then((res) => res.json()),
+          fetch("/api/entries?page=1&limit=100").then((res) => res.json()),
         ]);
 
-        const foundCategory = categoriesResponse.find(
+        if (categoriesResponse.error) {
+          throw new Error(categoriesResponse.error);
+        }
+
+        const foundCategory = categoriesResponse.categories.find(
           (cat: any) => cat.slug === params.slug
         );
 
         if (!foundCategory) {
           setError("Category not found");
-
           setIsLoading(false);
-
           return;
         }
 
         setCategory(foundCategory);
 
-        const filteredServices = servicesResponse.entries.filter(
+        const filteredServices = servicesResponse.services.filter(
           (service: any) =>
             service.categories && service.categories.includes(foundCategory.id)
         );
@@ -70,7 +57,6 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
         setError(
           "Failed to load category and services. Please try again later."
         );
-
         console.error(err);
       } finally {
         setIsLoading(false);
@@ -115,7 +101,7 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
         <p className="text-gray-600 mb-8">{category?.description}</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.map((service) => (
+          {services.map((service, index) => (
             <Link
               href={`/${service.Slug.value}`}
               key={service.id}
@@ -129,6 +115,8 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
                     fill
                     style={{ objectFit: "cover" }}
                     className="w-full h-full"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    priority={index < 3}
                   />
                 </div>
               )}

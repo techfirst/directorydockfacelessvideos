@@ -14,17 +14,14 @@ export async function GET(request: Request) {
   const client = new DirectoryDockClient(key);
 
   try {
-    const [servicesResponse, filtersResponse, categoriesResponse] =
-      await Promise.all([
-        client.getEntries(page, limit),
-        client.getFilters(),
-        client.getCategories(),
-      ]);
+    const [servicesResponse, filtersResponse] = await Promise.all([
+      client.getEntries(page, limit),
+      client.getFilters(),
+    ]);
 
     return NextResponse.json({
       services: servicesResponse.entries,
       filters: filtersResponse,
-      categories: categoriesResponse,
     });
   } catch (error) {
     console.error("Error fetching data:", error);

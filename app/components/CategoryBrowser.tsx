@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 
-import { DirectoryDockClient } from "directorydockclient";
-
 import Link from "next/link";
 
 export default function CategoryBrowser() {
@@ -15,26 +13,18 @@ export default function CategoryBrowser() {
 
   useEffect(() => {
     async function fetchCategories() {
-      const key = process.env.NEXT_PUBLIC_DIRECTORY_DOCK_API_KEY;
-
-      if (!key) {
-        setError("API key not found. Please check your environment variables.");
-
-        setIsLoading(false);
-
-        return;
-      }
-
-      const client = new DirectoryDockClient(key);
-
       try {
-        const categoriesResponse = await client.getCategories();
+        const response = await fetch("/api/categories");
+        const data = await response.json();
 
-        setCategories(categoriesResponse);
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        setCategories(data.categories);
       } catch (err) {
         setError("Failed to load categories. Please try again later.");
-
-        console.error(err);
+        console.error("Error in CategoryBrowser:", err);
       } finally {
         setIsLoading(false);
       }

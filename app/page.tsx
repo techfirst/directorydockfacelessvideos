@@ -236,26 +236,33 @@ export default function Component() {
         setIsCategoriesLoading(true);
         setIsLoading(true);
 
-        const response = await fetch("/api/entries?page=1&limit=10");
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
+        // Fetch categories and entries in parallel
+        const [categoriesResponse, entriesResponse] = await Promise.all([
+          fetch("/api/categories").then((res) => res.json()),
+          fetch("/api/entries?page=1&limit=10").then((res) => res.json()),
+        ]);
+
+        if (categoriesResponse.error) {
+          throw new Error(categoriesResponse.error);
+        }
+        if (entriesResponse.error) {
+          throw new Error(entriesResponse.error);
         }
 
-        const data = await response.json();
-
-        setFilters(data.filters);
-        setCategories(data.categories);
+        setFilters(entriesResponse.filters);
+        setCategories(categoriesResponse.categories);
 
         // Create category map
         const newCategoryMap: Record<string, string> = {};
-        data.categories.forEach((category: any) => {
+        categoriesResponse.categories.forEach((category: any) => {
           newCategoryMap[category.id] = category.name;
         });
         setCategoryMap(newCategoryMap);
         setIsCategoryMapReady(true);
 
         // Set initial services
-        setServices(data.services);
+        setServices(entriesResponse.services);
+        setFilteredServices(entriesResponse.services);
       } catch (err) {
         setError("Failed to load data. Please try again later.");
         console.error("Error fetching data:", err);
@@ -884,11 +891,10 @@ export default function Component() {
 
             <div className="mb-6">
               <h3 className="text-lg font-medium mb-2">Categories</h3>
-
               <div className="space-y-2">
                 {isCategoriesLoading ? (
                   <p>Loading categories...</p>
-                ) : categories.length > 0 ? (
+                ) : categories?.length > 0 ? (
                   categories.map((category) => (
                     <div key={category.id} className="flex items-center">
                       <Checkbox
@@ -898,7 +904,6 @@ export default function Component() {
                           handleCategoryChange(category.id, checked === true)
                         }
                       />
-
                       <label
                         htmlFor={`category-${category.id}`}
                         className="ml-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"

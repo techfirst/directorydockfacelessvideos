@@ -75,8 +75,10 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
             <Image
               src={service.Image.value}
               alt={service.Name.value as string}
-              layout="fill"
-              objectFit="cover"
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              style={{ objectFit: "cover" }}
+              priority={true}
             />
           </div>
           <div className="p-8">
