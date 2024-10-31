@@ -540,24 +540,20 @@ export default function Component() {
 
   useEffect(() => {
     async function fetchSubmitFields() {
-      const key = process.env.NEXT_PUBLIC_DIRECTORY_DOCK_API_KEY;
-      if (!key) {
-        console.error("API key not found");
-        return;
-      }
-
-      const client = new DirectoryDockClient(key);
       try {
-        const fields = await client.getSubmitFields();
-        setSubmitFields(fields);
-        // Initialize form data with empty values
-        const initialFormData: Record<string, any> = {};
-        fields.forEach((field: any) => {
-          initialFormData[field.FieldName] = "";
-        });
-        setSubmitFormData(initialFormData);
+        const response = await fetch("/api/submit-fields");
+        const data = await response.json();
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        setSubmitFields(data.submitFields);
       } catch (err) {
-        console.error("Failed to fetch submit fields:", err);
+        console.error("Error fetching submit fields:", err);
+        setSubmitError(
+          "Failed to load submission form. Please try again later."
+        );
       }
     }
 
