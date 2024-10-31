@@ -14,14 +14,9 @@ export async function GET(request: Request) {
   const client = new DirectoryDockClient(key);
 
   try {
-    const [servicesResponse, filtersResponse] = await Promise.all([
-      client.getEntries(page, limit),
-      client.getFilters(),
-    ]);
-
+    const servicesResponse = await client.getEntries(page, limit);
     return NextResponse.json({
       services: servicesResponse.entries,
-      filters: filtersResponse,
     });
   } catch (error) {
     console.error("Error fetching data:", error);

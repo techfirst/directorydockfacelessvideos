@@ -116,43 +116,6 @@ const AccordionContent = React.forwardRef<
 
 AccordionContent.displayName = "AccordionContent";
 
-// First, create a custom hook to handle URL updates
-const useUpdateURL = (
-  activeFilters: Record<string, string[]>,
-  selectedCategories: string[]
-) => {
-  const router = useRouter();
-  const [shouldUpdate, setShouldUpdate] = useState(false);
-
-  useEffect(() => {
-    if (!shouldUpdate) {
-      setShouldUpdate(true);
-      return;
-    }
-
-    const updateURL = () => {
-      const params = new URLSearchParams();
-
-      // Add active filters to URL
-      Object.entries(activeFilters).forEach(([key, values]) => {
-        if (values.length > 0) {
-          params.set(key, values.join(","));
-        }
-      });
-
-      // Add categories to URL
-      if (selectedCategories.length > 0) {
-        params.set("categories", selectedCategories.join(","));
-      }
-
-      router.replace(`?${params.toString()}`, { scroll: false });
-    };
-
-    const timeoutId = setTimeout(updateURL, 0);
-    return () => clearTimeout(timeoutId);
-  }, [activeFilters, selectedCategories, router, shouldUpdate]);
-};
-
 export default function Component() {
   const router = useRouter();
 
@@ -236,11 +199,13 @@ export default function Component() {
         setIsCategoriesLoading(true);
         setIsLoading(true);
 
-        // Fetch categories and entries in parallel
-        const [categoriesResponse, entriesResponse] = await Promise.all([
-          fetch("/api/categories").then((res) => res.json()),
-          fetch("/api/entries?page=1&limit=10").then((res) => res.json()),
-        ]);
+        // Fetch categories, entries, and filters in parallel
+        const [categoriesResponse, entriesResponse, filtersResponse] =
+          await Promise.all([
+            fetch("/api/categories").then((res) => res.json()),
+            fetch("/api/entries?page=1&limit=10").then((res) => res.json()),
+            fetch("/api/filters").then((res) => res.json()),
+          ]);
 
         if (categoriesResponse.error) {
           throw new Error(categoriesResponse.error);
@@ -248,8 +213,11 @@ export default function Component() {
         if (entriesResponse.error) {
           throw new Error(entriesResponse.error);
         }
+        if (filtersResponse.error) {
+          throw new Error(filtersResponse.error);
+        }
 
-        setFilters(entriesResponse.filters);
+        setFilters(filtersResponse.filters);
         setCategories(categoriesResponse.categories);
 
         // Create category map
