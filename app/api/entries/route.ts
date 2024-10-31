@@ -2,7 +2,7 @@ import { DirectoryDockClient } from "directorydockclient";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-  const key = process.env.NEXT_PUBLIC_DIRECTORY_DOCK_API_KEY;
+  const key = process.env.DIRECTORY_DOCK_API_KEY;
   if (!key) {
     return NextResponse.json({ error: "API key not found" }, { status: 500 });
   }
