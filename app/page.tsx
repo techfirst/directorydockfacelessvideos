@@ -409,27 +409,30 @@ export default function Component() {
     });
   };
 
-  const handleCategoryChange = (categoryId: string, checked: boolean) => {
-    setSelectedCategories((prev) => {
-      const newCategories = checked
-        ? [...prev, categoryId]
-        : prev.filter((id) => id !== categoryId);
+  // Create a state update handler for categories
+  const handleCategoryChange = useCallback(
+    (categoryId: string, checked: boolean) => {
+      setSelectedCategories((prev) => {
+        const newCategories = checked
+          ? [...prev, categoryId]
+          : prev.filter((id) => id !== categoryId);
 
-      // Update URL
+        // Use requestAnimationFrame to defer the URL update
+        requestAnimationFrame(() => {
+          const params = new URLSearchParams(window.location.search);
+          if (newCategories.length > 0) {
+            params.set("categories", newCategories.join(","));
+          } else {
+            params.delete("categories");
+          }
+          router.replace(`?${params.toString()}`, { scroll: false });
+        });
 
-      const params = new URLSearchParams(window.location.search);
-
-      if (newCategories.length > 0) {
-        params.set("categories", newCategories.join(","));
-      } else {
-        params.delete("categories");
-      }
-
-      router.replace(`?${params.toString()}`, { scroll: false });
-
-      return newCategories;
-    });
-  };
+        return newCategories;
+      });
+    },
+    [router]
+  );
 
   const faqItems = [
     {
