@@ -30,8 +30,6 @@ export default function CategoryBrowser() {
       try {
         const categoriesResponse = await client.getCategories();
 
-        console.log(categoriesResponse);
-
         setCategories(categoriesResponse);
       } catch (err) {
         setError("Failed to load categories. Please try again later.");

@@ -14,12 +14,10 @@ async function getService(slug: string) {
     );
   }
 
-  console.log("Fetching service with slug:", slug);
   const client = new DirectoryDockClient(key);
 
   try {
     const entry = await client.getEntry(slug);
-    console.log("Fetched service:", entry);
     return entry;
   } catch (error) {
     console.error("Failed to fetch service:", error);

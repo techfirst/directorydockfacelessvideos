@@ -267,7 +267,7 @@ export default function Component() {
         setServices(servicesResponse.entries);
       } catch (err) {
         setError("Failed to load data. Please try again later.");
-        console.error(err);
+        console.error("Error fetching data:", err);
       } finally {
         setIsLoading(false);
         setIsCategoriesLoading(false);
@@ -299,17 +299,13 @@ export default function Component() {
 
   const applyFiltersToServices = (
     services: any[],
-
     filters: Record<string, string[]>,
-
     selectedCategories: string[]
   ) => {
     return services.filter((service) => {
       // Check if the service belongs to any of the selected categories
-
       if (selectedCategories.length > 0) {
         const serviceCategories = service.categories || [];
-
         if (
           !selectedCategories.some((cat) => serviceCategories.includes(cat))
         ) {
@@ -320,29 +316,28 @@ export default function Component() {
       return Object.entries(filters).every(([key, values]) => {
         if (values.length === 0) return true;
 
+        // Special handling for Tags field which has a nested value array
+        if (key === "Tags") {
+          const tagValues = service[key]?.value || [];
+          return values.some((value) => tagValues.includes(value));
+        }
+
         const serviceValue = service[key]?.value;
 
-        // Handle boolean comparisons
-
+        // Rest of your existing comparisons...
         if (typeof serviceValue === "boolean") {
           return values.includes(serviceValue.toString());
         }
 
-        // Handle number comparisons
-
         if (typeof serviceValue === "number") {
           return values.some((value) => parseFloat(value) === serviceValue);
         }
-
-        // Handle date comparisons
 
         if (serviceValue instanceof Date) {
           return values.some(
             (value) => new Date(value).getTime() === serviceValue.getTime()
           );
         }
-
-        // Handle string comparisons (including partial matches for text fields)
 
         if (typeof serviceValue === "string") {
           return values.some((value) =>
@@ -575,10 +570,6 @@ export default function Component() {
   // Add this useEffect to log categories when they change
 
   useEffect(() => {
-    console.log("Categories updated:", categories);
-  }, [categories]);
-
-  useEffect(() => {
     async function fetchSubmitFields() {
       const key = process.env.NEXT_PUBLIC_DIRECTORY_DOCK_API_KEY;
       if (!key) {
@@ -628,7 +619,6 @@ export default function Component() {
       }
 
       const result = await response.json();
-      console.log("Form submitted successfully:", result);
       setSubmitSuccess(true);
       setSubmitFormData({}); // Clear the form after successful submission
     } catch (error: unknown) {
@@ -669,7 +659,14 @@ export default function Component() {
         return <Input {...commonProps} type="date" />;
 
       case "richText":
-        return <Textarea {...commonProps} />;
+      case "textarea":
+        return (
+          <Textarea
+            {...commonProps}
+            placeholder={field.Placeholder || `Enter ${field.FieldLabel}`}
+            className="min-h-[100px]" // Add minimum height for better UX
+          />
+        );
 
       case "boolean":
         return (
@@ -1159,8 +1156,9 @@ export default function Component() {
                         src={service.Image.value}
                         alt={service.Name.value}
                         fill
-                        style={{ objectFit: "cover" }}
-                        className="w-full h-full"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover"
+                        priority={false}
                       />
                     </div>
                   )}
