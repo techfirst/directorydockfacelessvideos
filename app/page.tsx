@@ -6,16 +6,13 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 import {
   Search,
   Filter,
   ChevronDown,
   ChevronUp,
-  Mail,
-  Phone,
-  MapPin,
   X,
   Loader2,
 } from "lucide-react";
@@ -119,6 +116,43 @@ const AccordionContent = React.forwardRef<
 
 AccordionContent.displayName = "AccordionContent";
 
+// First, create a custom hook to handle URL updates
+const useUpdateURL = (
+  activeFilters: Record<string, string[]>,
+  selectedCategories: string[]
+) => {
+  const router = useRouter();
+  const [shouldUpdate, setShouldUpdate] = useState(false);
+
+  useEffect(() => {
+    if (!shouldUpdate) {
+      setShouldUpdate(true);
+      return;
+    }
+
+    const updateURL = () => {
+      const params = new URLSearchParams();
+
+      // Add active filters to URL
+      Object.entries(activeFilters).forEach(([key, values]) => {
+        if (values.length > 0) {
+          params.set(key, values.join(","));
+        }
+      });
+
+      // Add categories to URL
+      if (selectedCategories.length > 0) {
+        params.set("categories", selectedCategories.join(","));
+      }
+
+      router.replace(`?${params.toString()}`, { scroll: false });
+    };
+
+    const timeoutId = setTimeout(updateURL, 0);
+    return () => clearTimeout(timeoutId);
+  }, [activeFilters, selectedCategories, router, shouldUpdate]);
+};
+
 export default function Component() {
   const router = useRouter();
 
@@ -167,27 +201,25 @@ export default function Component() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const isFirstRender = useRef(true);
+
   const handleAccordionChange = (value: string[]) => {
     setOpenItems(value);
   };
 
   useEffect(() => {
+    if (!isFirstRender.current) return;
+
     // This effect runs only on the client side
-
     const params = new URLSearchParams(window.location.search);
-
     setSearchParamsState(params);
 
     // Parse categories from URL
-
     const urlCategories = params.get("categories")?.split(",") || [];
-
     setSelectedCategories(urlCategories);
 
     // Parse other filters
-
     const urlFilters: Record<string, string[]> = {};
-
     params.forEach((value, key) => {
       if (key !== "categories") {
         urlFilters[key] = value.split(",");
@@ -197,15 +229,13 @@ export default function Component() {
     setActiveFilters(urlFilters);
   }, []);
 
-  const debouncedFetchData = useCallback(
-    debounce(async (filters: Record<string, string[]>) => {
+  // Separate initial data fetch
+  useEffect(() => {
+    async function fetchInitialData() {
       const key = process.env.NEXT_PUBLIC_DIRECTORY_DOCK_API_KEY;
-
       if (!key) {
         setError("API key not found. Please check your environment variables.");
-
         setIsLoading(false);
-
         return;
       }
 
@@ -214,61 +244,58 @@ export default function Component() {
       try {
         setIsCategoriesLoading(true);
 
+        // Fetch initial data
         const [servicesResponse, filtersResponse, categoriesResponse] =
           await Promise.all([
             client.getEntries(1, 10),
-
             client.getFilters(),
-
             client.getCategories(),
           ]);
 
         setFilters(filtersResponse);
-
-        console.log("Categories received:", categoriesResponse);
-
-        // Update categories and create a map of category IDs to names
-
         setCategories(categoriesResponse);
 
+        // Create category map
         const newCategoryMap: Record<string, string> = {};
-
         categoriesResponse.forEach((category: any) => {
           newCategoryMap[category.id] = category.name;
         });
-
         setCategoryMap(newCategoryMap);
-
         setIsCategoryMapReady(true);
 
-        // Apply filters to the fetched services
-
-        const filteredServices = applyFiltersToServices(
-          servicesResponse.entries,
-
-          filters,
-
-          selectedCategories
-        );
-
-        setServices(filteredServices);
+        // Set initial services
+        setServices(servicesResponse.entries);
       } catch (err) {
         setError("Failed to load data. Please try again later.");
-
         console.error(err);
       } finally {
         setIsLoading(false);
-
         setIsCategoriesLoading(false);
       }
-    }, 300),
+    }
 
+    fetchInitialData();
+  }, []); // Only run once on mount
+
+  // Modify the debouncedFetchData to only handle filtering
+  const debouncedFetchData = useCallback(
+    debounce((services: any[], filters: Record<string, string[]>) => {
+      const filteredServices = applyFiltersToServices(
+        services,
+        filters,
+        selectedCategories
+      );
+      setFilteredServices(filteredServices);
+    }, 300),
     [selectedCategories]
   );
 
+  // Update useEffect for filter changes
   useEffect(() => {
-    debouncedFetchData(activeFilters);
-  }, [activeFilters, debouncedFetchData]);
+    if (services.length > 0) {
+      debouncedFetchData(services, activeFilters);
+    }
+  }, [activeFilters, services, debouncedFetchData]);
 
   const applyFiltersToServices = (
     services: any[],
@@ -328,25 +355,44 @@ export default function Component() {
     });
   };
 
+  // First, create a function to update the URL outside of the render cycle
+  const updateURL = useCallback(
+    (filters: Record<string, string[]>) => {
+      // Wrap the router update in a setTimeout to move it out of the render cycle
+      setTimeout(() => {
+        const params = new URLSearchParams();
+        Object.entries(filters).forEach(([key, values]) => {
+          if (values.length > 0) {
+            params.set(key, values.join(","));
+          }
+        });
+
+        // Add categories to URL if they exist
+        if (selectedCategories.length > 0) {
+          params.set("categories", selectedCategories.join(","));
+        }
+
+        router.replace(`?${params.toString()}`, { scroll: false });
+      }, 0);
+    },
+    [router, selectedCategories]
+  );
+
+  // Modify handleFilterChange to batch state updates
   const handleFilterChange = (
     filterName: string,
-
     value: string | boolean | null,
-
     checked?: boolean
   ) => {
+    // Use a callback to ensure we're working with latest state
     setActiveFilters((prevFilters) => {
       const newFilters = { ...prevFilters };
 
       if (value === null || value === "") {
-        // Remove the filter if value is null or empty string
-
         delete newFilters[filterName];
       } else if (typeof value === "boolean") {
         newFilters[filterName] = [value.toString()];
       } else {
-        // Handle multiple selections for dropdown filters
-
         if (checked !== undefined) {
           if (checked) {
             newFilters[filterName] = [...(newFilters[filterName] || []), value];
@@ -356,27 +402,13 @@ export default function Component() {
             );
           }
 
-          // Remove the filter if all options are unchecked
-
-          if (newFilters[filterName].length === 0) {
+          if (newFilters[filterName]?.length === 0) {
             delete newFilters[filterName];
           }
         } else {
           newFilters[filterName] = [value];
         }
       }
-
-      // Update URL based on the new filters
-
-      const params = new URLSearchParams();
-
-      Object.entries(newFilters).forEach(([key, values]) => {
-        if (values.length > 0) {
-          params.set(key, values.join(","));
-        }
-      });
-
-      router.replace(`?${params.toString()}`, { scroll: false });
 
       return newFilters;
     });
@@ -685,10 +717,77 @@ export default function Component() {
           />
         );
 
+      case "multiselect":
+        return (
+          <div
+            className="space-y-2 border p-4 rounded-md"
+            key={field.FieldName}
+          >
+            <div className="text-sm font-medium mb-2">{field.FieldLabel}</div>
+            {field.Options.map((option: string) => (
+              <div
+                key={`${field.FieldName}-${option}`}
+                className="flex items-center gap-2"
+              >
+                <Checkbox
+                  id={`${field.FieldName}-${option}`}
+                  checked={
+                    Array.isArray(submitFormData[field.FieldName]) &&
+                    submitFormData[field.FieldName].includes(option)
+                  }
+                  onCheckedChange={(checked) => {
+                    const currentValues = Array.isArray(
+                      submitFormData[field.FieldName]
+                    )
+                      ? submitFormData[field.FieldName]
+                      : [];
+
+                    const newValues = checked
+                      ? [...currentValues, option]
+                      : currentValues.filter(
+                          (value: string) => value !== option
+                        );
+
+                    handleSubmitFormChange(field.FieldName, newValues);
+                  }}
+                />
+                <label
+                  htmlFor={`${field.FieldName}-${option}`}
+                  className="text-sm cursor-pointer"
+                >
+                  {option}
+                </label>
+              </div>
+            ))}
+          </div>
+        );
+
       default:
         return <Input {...commonProps} />;
     }
   };
+
+  // Move URL updates to a separate effect
+  useEffect(() => {
+    const params = new URLSearchParams();
+
+    // Add active filters to URL
+    Object.entries(activeFilters).forEach(([key, values]) => {
+      if (values?.length > 0) {
+        params.set(key, values.join(","));
+      }
+    });
+
+    // Add categories to URL
+    if (selectedCategories.length > 0) {
+      params.set("categories", selectedCategories.join(","));
+    }
+
+    // Use requestAnimationFrame to ensure we're not updating during render
+    requestAnimationFrame(() => {
+      router.replace(`?${params.toString()}`, { scroll: false });
+    });
+  }, [activeFilters, selectedCategories, router]);
 
   return (
     <>
@@ -840,11 +939,8 @@ export default function Component() {
                       {(() => {
                         switch (filter.fieldType) {
                           case "text":
-
                           case "email":
-
                           case "url":
-
                           case "phone":
                             return (
                               <Input
@@ -864,8 +960,24 @@ export default function Component() {
                               />
                             );
 
-                          case "number":
+                          case "textarea":
+                            return (
+                              <Textarea
+                                id={`${filter.fieldName}-input`}
+                                value={
+                                  activeFilters[filter.fieldName]?.[0] || ""
+                                }
+                                onChange={(e) =>
+                                  handleFilterChange(
+                                    filter.fieldName,
+                                    e.target.value
+                                  )
+                                }
+                                placeholder={`Enter ${filter.fieldName.toLowerCase()}`}
+                              />
+                            );
 
+                          case "number":
                           case "currency":
                             return (
                               <Input
@@ -877,7 +989,6 @@ export default function Component() {
                                 onChange={(e) =>
                                   handleFilterChange(
                                     filter.fieldName,
-
                                     e.target.value
                                   )
                                 }
@@ -896,28 +1007,9 @@ export default function Component() {
                                 onChange={(e) =>
                                   handleFilterChange(
                                     filter.fieldName,
-
                                     e.target.value
                                   )
                                 }
-                              />
-                            );
-
-                          case "richText":
-                            return (
-                              <Textarea
-                                id={`${filter.fieldName}-input`}
-                                value={
-                                  activeFilters[filter.fieldName]?.[0] || ""
-                                }
-                                onChange={(e) =>
-                                  handleFilterChange(
-                                    filter.fieldName,
-
-                                    e.target.value
-                                  )
-                                }
-                                placeholder={`Enter ${filter.fieldName.toLowerCase()}`}
                               />
                             );
 
@@ -927,7 +1019,6 @@ export default function Component() {
                                 <Label htmlFor={`${filter.fieldName}-switch`}>
                                   {filter.fieldName}
                                 </Label>
-
                                 <select
                                   id={`${filter.fieldName}-switch`}
                                   value={
@@ -935,17 +1026,14 @@ export default function Component() {
                                   }
                                   onChange={(e) => {
                                     const value = e.target.value;
-
                                     if (value === "") {
                                       handleFilterChange(
                                         filter.fieldName,
-
                                         null
                                       );
                                     } else {
                                       handleFilterChange(
                                         filter.fieldName,
-
                                         value === "true"
                                       );
                                     }
@@ -953,11 +1041,42 @@ export default function Component() {
                                   className="border rounded px-2 py-1"
                                 >
                                   <option value="">Any</option>
-
                                   <option value="true">Yes</option>
-
                                   <option value="false">No</option>
                                 </select>
+                              </div>
+                            );
+
+                          case "multiselect":
+                            return (
+                              <div className="space-y-2">
+                                {filter.options.map((option: string) => (
+                                  <div
+                                    key={option}
+                                    className="flex items-center space-x-2"
+                                  >
+                                    <Checkbox
+                                      id={`${filter.fieldName}-${option}`}
+                                      checked={
+                                        activeFilters[
+                                          filter.fieldName
+                                        ]?.includes(option) || false
+                                      }
+                                      onCheckedChange={(checked) => {
+                                        handleFilterChange(
+                                          filter.fieldName,
+                                          option,
+                                          checked === true
+                                        );
+                                      }}
+                                    />
+                                    <Label
+                                      htmlFor={`${filter.fieldName}-${option}`}
+                                    >
+                                      {option}
+                                    </Label>
+                                  </div>
+                                ))}
                               </div>
                             );
 
@@ -979,14 +1098,11 @@ export default function Component() {
                                       onCheckedChange={(checked) => {
                                         handleFilterChange(
                                           filter.fieldName,
-
                                           option,
-
                                           checked === true
                                         );
                                       }}
                                     />
-
                                     <Label
                                       htmlFor={`${filter.fieldName}-${option}`}
                                     >
@@ -1031,9 +1147,9 @@ export default function Component() {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {visibleServices.map((service) => (
+              {visibleServices.map((service, index) => (
                 <a
-                  key={service.Id}
+                  key={`service-${index}`}
                   href={`/${service.Slug.value}`}
                   className="block bg-white rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-xl h-full flex flex-col overflow-hidden"
                 >
