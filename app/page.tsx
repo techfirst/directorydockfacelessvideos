@@ -229,42 +229,33 @@ export default function Component() {
     setActiveFilters(urlFilters);
   }, []);
 
-  // Separate initial data fetch
+  // Modify the initial data fetch
   useEffect(() => {
     async function fetchInitialData() {
-      const key = process.env.NEXT_PUBLIC_DIRECTORY_DOCK_API_KEY;
-      if (!key) {
-        setError("API key not found. Please check your environment variables.");
-        setIsLoading(false);
-        return;
-      }
-
-      const client = new DirectoryDockClient(key);
-
       try {
         setIsCategoriesLoading(true);
+        setIsLoading(true);
 
-        // Fetch initial data
-        const [servicesResponse, filtersResponse, categoriesResponse] =
-          await Promise.all([
-            client.getEntries(1, 10),
-            client.getFilters(),
-            client.getCategories(),
-          ]);
+        const response = await fetch("/api/entries?page=1&limit=10");
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
 
-        setFilters(filtersResponse);
-        setCategories(categoriesResponse);
+        const data = await response.json();
+
+        setFilters(data.filters);
+        setCategories(data.categories);
 
         // Create category map
         const newCategoryMap: Record<string, string> = {};
-        categoriesResponse.forEach((category: any) => {
+        data.categories.forEach((category: any) => {
           newCategoryMap[category.id] = category.name;
         });
         setCategoryMap(newCategoryMap);
         setIsCategoryMapReady(true);
 
         // Set initial services
-        setServices(servicesResponse.entries);
+        setServices(data.services);
       } catch (err) {
         setError("Failed to load data. Please try again later.");
         console.error("Error fetching data:", err);
