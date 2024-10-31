@@ -82,6 +82,20 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
             <h1 className="text-3xl sm:text-4xl font-bold mb-6 text-gray-800">
               {service.Name.value}
             </h1>
+            {service.Tags &&
+              service.Tags.value &&
+              service.Tags.value.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {service.Tags.value.map((tag: string, tagIndex: number) => (
+                    <span
+                      key={tagIndex}
+                      className="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-gray-100 text-gray-700"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             <div className="prose prose-lg max-w-none text-gray-600 mb-8">
               <p>{service.Description.value}</p>
             </div>

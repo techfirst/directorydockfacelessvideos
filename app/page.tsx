@@ -1126,14 +1126,37 @@ export default function Component() {
                     </div>
                   )}
 
-                  <div className="p-6 flex-grow">
+                  <div className="p-6 flex-grow flex flex-col">
                     <h3 className="font-semibold text-lg mb-2">
                       {service.Name.value}
                     </h3>
 
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground mb-4">
                       {truncateText(service.Description.value, 100)}
                     </p>
+
+                    {/* Add Tags section */}
+                    {service.Tags &&
+                      service.Tags.value &&
+                      service.Tags.value.length > 0 && (
+                        <div className="mt-auto flex flex-wrap gap-1">
+                          {service.Tags.value
+                            .slice(0, 3)
+                            .map((tag: string, tagIndex: number) => (
+                              <span
+                                key={tagIndex}
+                                className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          {service.Tags.value.length > 3 && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
+                              +{service.Tags.value.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      )}
                   </div>
                 </a>
               ))}
