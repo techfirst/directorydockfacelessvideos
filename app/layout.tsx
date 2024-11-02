@@ -19,6 +19,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <script
+          defer
+          data-domain="facelessvideolist.com"
+          src="https://plausible.io/js/script.js"
+        ></script>
+      </head>
       <body className={inter.className}>
         <div className="min-h-screen bg-background flex flex-col">
           <header className="bg-gradient-to-r from-gray-900 to-gray-800 text-white border-b border-gray-700">
