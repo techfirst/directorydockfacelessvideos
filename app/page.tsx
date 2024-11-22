@@ -55,6 +55,8 @@ import {
 
 import CategoryButtons from "./components/CategoryButtons";
 
+import { getFieldValue } from '@/lib/helpers';
+
 const cn = (...classes: (string | undefined)[]) => {
   return clsx(classes);
 };
@@ -1110,14 +1112,14 @@ export default function Component() {
               {visibleServices.map((service, index) => (
                 <a
                   key={`service-${index}`}
-                  href={`/${service.Slug.value}`}
+                  href={`/${getFieldValue(service, 'Slug')}`}
                   className="block bg-white rounded-lg shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-xl h-full flex flex-col overflow-hidden"
                 >
                   {service.Image && service.Image.value && (
                     <div className="relative w-full h-40">
                       <Image
-                        src={service.Image.value}
-                        alt={service.Name.value}
+                        src={getFieldValue(service, 'Image')}
+                        alt={getFieldValue(service, 'Name')}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover"
@@ -1128,35 +1130,33 @@ export default function Component() {
 
                   <div className="p-6 flex-grow flex flex-col">
                     <h3 className="font-semibold text-lg mb-2">
-                      {service.Name.value}
+                      {getFieldValue(service, 'Name')}
                     </h3>
 
                     <p className="text-sm text-muted-foreground mb-4">
-                      {truncateText(service.Description.value, 100)}
+                      {truncateText(String(getFieldValue(service, 'Description')), 100)}
                     </p>
 
                     {/* Add Tags section */}
-                    {service.Tags &&
-                      service.Tags.value &&
-                      service.Tags.value.length > 0 && (
-                        <div className="mt-auto flex flex-wrap gap-1">
-                          {service.Tags.value
-                            .slice(0, 3)
-                            .map((tag: string, tagIndex: number) => (
-                              <span
-                                key={tagIndex}
-                                className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          {service.Tags.value.length > 3 && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
-                              +{service.Tags.value.length - 3}
+                    {getFieldValue(service, 'Tags') && Array.isArray(getFieldValue(service, 'Tags')) && (
+                      <div className="mt-auto flex flex-wrap gap-1">
+                        {(getFieldValue(service, 'Tags') as string[])
+                          .slice(0, 3)
+                          .map((tag: string, tagIndex: number) => (
+                            <span
+                              key={tagIndex}
+                              className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600"
+                            >
+                              {tag}
                             </span>
-                          )}
-                        </div>
-                      )}
+                          ))}
+                        {getFieldValue(service, 'Tags').length > 3 && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
+                            +{getFieldValue(service, 'Tags').length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </a>
               ))}
