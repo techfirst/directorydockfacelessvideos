@@ -1118,8 +1118,8 @@ export default function Component() {
                   {service.Image && service.Image.value && (
                     <div className="relative w-full h-40">
                       <Image
-                        src={getFieldValue(service, 'Image')}
-                        alt={getFieldValue(service, 'Name')}
+                        src={String(getFieldValue(service, 'Image'))}
+                        alt={String(getFieldValue(service, 'Name'))}
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover"
