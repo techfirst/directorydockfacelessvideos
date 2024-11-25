@@ -1,7 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { VideoIcon } from "lucide-react";
+import { VideoIcon, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -28,6 +28,30 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <div className="min-h-screen bg-background flex flex-col">
+          <Link 
+            href="https://directorydock.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-gradient-to-r from-orange-300/90 to-orange-200/90 hover:from-orange-300/80 hover:to-orange-200/80 transition-colors"
+          >
+            <div className="container mx-auto px-4 py-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-gray-900 flex items-center justify-center">
+                      <Sparkles className="h-3.5 w-3.5 text-orange-300" />
+                    </div>
+                    <p className="font-semibold text-gray-900">New!</p>
+                  </div>
+                  <p className="text-gray-900 text-center sm:text-left">Build Any Directory in Minutes with DirectoryDock</p>
+                </div>
+                <button className="bg-gray-900 text-orange-300 px-6 py-2 rounded-md font-medium hover:bg-gray-800 transition-colors">
+                  Get DirectoryDock
+                </button>
+              </div>
+            </div>
+          </Link>
+
           <header className="bg-gradient-to-r from-gray-900 to-gray-800 text-white border-b border-gray-700">
             <div className="container mx-auto px-4 py-4 flex justify-between items-center">
               <Link href="/" className="flex items-center space-x-2">
