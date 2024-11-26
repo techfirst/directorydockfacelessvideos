@@ -56,7 +56,7 @@ export default function RootLayout({
             <div className="container mx-auto px-4 py-4 flex justify-between items-center">
               <Link href="/" className="flex items-center space-x-2">
                 <VideoIcon className="h-8 w-8 text-orange-300" />
-                <h1 className="text-2xl font-bold text-gray-300">
+                <h1 className="text-xl font-bold text-gray-300">
                   Faceless video list
                 </h1>
               </Link>
